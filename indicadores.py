@@ -1,7 +1,4 @@
-import funciones
 import math
-import pandas as pd
-from funciones import *
 import talib as ta
 """
 Se tienen funciones de los indicadores 
