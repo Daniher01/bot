@@ -1,11 +1,11 @@
 import pandas as pd
 import numpy as np
 import talib as ta
-
-
-#backtesting para WMA
 import indicadores
 
+"""
+Clase para realizar los backtesting manualmente
+"""
 
 def bt_wma(df, periodo):
     contador = 0

@@ -1,9 +1,7 @@
 import matplotlib.pyplot as plt
 import funciones
 import backtesting
-import pandas as pd
 
-import indicadores
 
 datos = funciones.datos_ticker('BTCUSDT', '1d', 'enero 2021')
 
