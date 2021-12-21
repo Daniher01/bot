@@ -1,43 +1,22 @@
-import backtrader as bt
-import datetime as dt
+import pandas as pd
+import talib as ta
+import numpy as np
 
-import dateparser
+import funciones
+import indicadores
 
-
-class Strategy(bt.Strategy):
-
-    def __init__(self):
-        self.dataclose = self.datas[0].close
-
-    def next(self):
-        self.log('', self.dataclose[0].cose)
-        if self.dataclose[0] < self.dataclose[-1]:
-            if self.dataclose[-1] < self.dataclose[-2]:
-                self.log('BUY CREATE', self.dataclose[0])
-                self.buy()
-
-    def log(self, txt, dt=None):
-        dt = dt or self.datas[0].datetime.date[0]
-        print('{} {}'.format(dt, txt))
+datos = funciones.datos_ticker('BTCUSDT', '1d', 'enero 2021')
 
 
-cerebro = bt.Cerebro()
+contador = 0
+lista = []
+for i in datos.close:
+    contador += 1
+    lista.append(i)
+    if contador >= 50:
+        df = pd.DataFrame(lista)
+        df['close'] = df[0]
+        d = indicadores.HMA(df, 50)
+        print(d)
 
-cerebro.addstrategy(Strategy)
 
-data = bt.feeds.GenericCSVData(
-    name='BTCUSDT',
-    dataname='BTCUSDT-1d-data-enero 2021.csv',
-    timeFrame = bt.TimeFrame.Days,
-    fromdate = dt.datetime(2021, 1, 17),
-    todate = dt.datetime(2021, 12, 17),
-    nullvalue = 0.0
-)
-cerebro.adddata(data)
-cerebro.broker.setcash(10000.0)
-print('Portafolio inicial: %.2f' % cerebro.broker.getvalue())
-cerebro.run()
-print('Portafolio final: %.2f' % cerebro.broker.getvalue())
-
-#d = dt.datetime.strptime('2021-01-17', '%Y-%m-%d ')
-#print(d)

@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 from conexion import cliente
 import os
@@ -50,7 +51,6 @@ def datos_ticker(simbolo, temporalidad, start_date=False, limite = False):
         for col in columns:
             data[col] = data[col].astype(float)
         data['timestamp'] = pd.to_datetime(data['timestamp'] * 1000000)
-
         return data  # retorna un DataFrame
     except Exception as e:
         print('ERROR:', e)
