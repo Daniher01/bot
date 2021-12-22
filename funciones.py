@@ -84,37 +84,17 @@ def balance():
         print('ERROR: ', e)
 
 
-# guarda los datos de un simbolo en un CSV de un mismo simbolo
-def get_data_csv(simbolo, temporalidad, save=True, star_data=False):
+#genera un CSV
+def get_csv(data, simbolo, temporalidad, save=True, star_data=False):
     if star_data == False:
-        filename = '%s-%s-data_all.csv' % (simbolo, temporalidad)
-        old, new = tiempo_server()
-        star_data = old
+        filename = '%s-%s-data-BT.csv' % (simbolo, temporalidad)
     else:
         filename = '%s-%s-data-%s.csv' % (simbolo, temporalidad, star_data)
-    # si existe el archivo lo lee, sino lo crea
-    if os.path.isfile(filename):
-        data_df = pd.read_csv(filename)
-    else:
-        data_df = pd.DataFrame()
     print('Descargando todos los datos %s de %s...' % (temporalidad, simbolo))
-    # obtiene todos los datos de ese simbolo
-    klines = cliente.get_historical_klines(simbolo, temporalidad, str(star_data))
-    data = pd.DataFrame(klines)
-    data = data.drop([6, 7, 8, 9, 10], axis=1)
-    columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'trades']
-    data.columns = columns
-    data['timestamp'] = pd.to_datetime(data['timestamp'] * 1000000)
-    if len(data_df) > 0:
-        temp_df = pd.DataFrame(data)
-        data_df = data_df.append(temp_df)
-    else:
-        data_df = data
-    data_df.set_index('timestamp', inplace=True)
     if save:
-        data_df.to_csv(filename)
+        data.to_csv(filename)
     print('Datos cargados...')
-    return data_df
+    return data
 
 
 # saber cantidad minima y maxima de compra

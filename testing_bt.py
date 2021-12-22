@@ -37,8 +37,8 @@ class Strategy1(bt.Strategy):
 
 
     def __init__(self):
-        self.sma50 = bt.indicators.EMA(period=50)
-        self.sma80 = bt.indicators.EMA(period=80)
+        self.sma50 = bt.indicators.SMA(period=50)
+        self.sma80 = bt.indicators.SMA(period=80)
         self.dataclose = self.datas[0].close
         self.order = None
 
@@ -105,10 +105,12 @@ data = bt.feeds.GenericCSVData(
 )
 
 cerebro.adddata(data)
-
+cerebro.addstrategy(testing_bt.Strategy1)
 cerebro.broker.setcash(10000)
 print('portafolio inicial: %.2f' %cerebro.broker.getvalue())
 cerebro.run()
 print('portafolio final: %.2f' %cerebro.broker.getvalue())
 """
+
+
 
