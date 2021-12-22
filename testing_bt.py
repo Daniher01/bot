@@ -1,4 +1,5 @@
 import backtrader as bt
+import datetime as dt
 
 class Strategy(bt.Strategy):
 
@@ -89,7 +90,9 @@ class RSIStrategy(bt.Strategy):
 
 """
 COLOCAR EN EL MAIN
+"""
 
+"""
 cerebro = bt.Cerebro()
 
 data = bt.feeds.GenericCSVData(
@@ -108,3 +111,4 @@ print('portafolio inicial: %.2f' %cerebro.broker.getvalue())
 cerebro.run()
 print('portafolio final: %.2f' %cerebro.broker.getvalue())
 """
+
