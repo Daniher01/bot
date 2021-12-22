@@ -11,9 +11,6 @@ import matplotlib.pyplot as plt
 Clase para realizar los backtesting manualmente
 """
 class Estrategia1_ST():
-
-
-
     #algoritmo para saber baktesting de estrategia HMA
     def senial_hma(self, data, dolares):
         compra = []
@@ -94,11 +91,10 @@ class Estrategia1_ST():
 
 
 datos = funciones.datos_ticker('BTCUSDT', '1d', 'marzo 2021')
-est1 = Estrategia1_ST()
+est1 = Estrategia1_ST() #se instancia la clase
 hma50 = est1.bt_hma(datos,50)
 hma80 = est1.bt_hma(datos,80)
 
-datos['close'] = datos.close
 datos['hma50'] = hma50[0]
 datos['hma80'] = hma80[0]
 
@@ -107,10 +103,9 @@ datos['compra'] = compra
 datos['venta'] = venta
 datos['%'] = diferencia
 
-print(datos.tail(80))
 print('La relacion G/P en porcentaje es: ',datos['%'].sum(),'%')
 
-funciones.get_csv(datos, 'BTCUSSDT', '1d')
+funciones.get_csv(datos, 'BTCUSSDT', '1d') #se genera el csv
 
 plt.Figure(figsize=(10,5))
 plt.plot(datos['close'], label = 'Bitcoin')

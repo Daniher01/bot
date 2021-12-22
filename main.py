@@ -1,12 +1,9 @@
-import matplotlib.pyplot as plt
-import funciones
-import backtesting
 import estrategias
-import indicadores
-import backtrader as bt
-import datetime as dt
+import funciones
 
-import testing_bt
+datos = funciones.datos_ticker('BTCUSDT', '1d', 'marzo 2021')
+estrategias.cruce_hma(datos, 80,50)
+
 
 
 
