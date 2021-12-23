@@ -36,9 +36,4 @@ def cruce_hma(df, periodo_mayor, periodo_menor): #estrategia solo para opciones 
     return market
     #retorna booleano
 
-list = ['BTCUSDT', 'SOLUSDT', 'DOTUSDT', 'LUNAUSDT']
-for par in list:
-    datos = funciones.datos_ticker(par, '1d', 'marzo 2021')
-    print(par)
-    cruce_hma(datos, 80, 50)
-    print(' ')
+

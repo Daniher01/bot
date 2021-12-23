@@ -90,7 +90,7 @@ class Estrategia1_ST():
 
 
 
-datos = funciones.datos_ticker('DOTUSDT', '1d', 'marzo 2021')
+datos = funciones.datos_ticker('DOTUSDT', '1d',80)
 est1 = Estrategia1_ST() #se instancia la clase
 hma50 = est1.bt_hma(datos,50)
 hma80 = est1.bt_hma(datos,80)

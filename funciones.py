@@ -33,29 +33,6 @@ def mostrar_precios():
         price = ticker['price']
         print("SIMBOLO: " + symbol + " PRECIO: " + price)
 
-
-# muestra todos los datos desde cierta feche, ordenadamente
-def datos_ticker(simbolo, temporalidad, start_date=False, limite = False):
-    try:
-        if start_date == False:
-            old, new = tiempo_server()
-            start_date = str(old)
-        if limite == False:
-            klines = cliente.get_historical_klines(symbol=simbolo, interval=temporalidad, start_str=start_date)
-        else:
-            klines = cliente.get_historical_klines(symbol=simbolo, interval=temporalidad, start_str=start_date, limit=limite)
-        data = pd.DataFrame(klines)
-        data = data.drop([6, 7, 8, 9, 10], axis=1)
-        columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'trades']
-        data.columns = columns
-        for col in columns:
-            data[col] = data[col].astype(float)
-        data['timestamp'] = pd.to_datetime(data['timestamp'] * 1000000)
-        return data  # retorna un DataFrame
-    except Exception as e:
-        print('ERROR:', e)
-
-
 # permite sabes si existe o no el par
 def existe_par(simbolo):
     lista_tickers = cliente.get_all_tickers()
@@ -68,8 +45,52 @@ def existe_par(simbolo):
         else:
             existe = False
             # FALSE si no existe el par
+    if existe == False:
+        print('No existe ese Par')
     return existe
 
+
+# muestra todos los datos desde cierta feche, ordenadamente
+def datos_ticker(simbolo, temporalidad,limite=False):
+    try:
+        existe = existe_par(simbolo)
+        if existe == True:
+            if limite == False:
+                old, new = tiempo_server()
+                start_date = str(old)
+                klines = cliente.get_historical_klines(symbol=simbolo, interval=temporalidad, start_str=start_date)
+            else:
+                if temporalidad == cliente.KLINE_INTERVAL_1MINUTE or \
+                        temporalidad == cliente.KLINE_INTERVAL_3MINUTE or \
+                        temporalidad == cliente.KLINE_INTERVAL_5MINUTE or \
+                        temporalidad == cliente.KLINE_INTERVAL_15MINUTE or \
+                        temporalidad == cliente.KLINE_INTERVAL_30MINUTE:
+                    klines = cliente.get_historical_klines(symbol=simbolo, interval=temporalidad, start_str='%s minutes ago' % limite, limit=limite)
+                elif temporalidad == cliente.KLINE_INTERVAL_1HOUR or \
+                        temporalidad == cliente.KLINE_INTERVAL_2HOUR or \
+                        temporalidad == cliente.KLINE_INTERVAL_4HOUR or \
+                        temporalidad == cliente.KLINE_INTERVAL_6HOUR or \
+                        temporalidad == cliente.KLINE_INTERVAL_8HOUR or \
+                        temporalidad == cliente.KLINE_INTERVAL_12HOUR:
+                    klines = cliente.get_historical_klines(symbol=simbolo, interval=temporalidad, start_str='%s hours ago' % limite, limit=limite)
+                elif temporalidad == cliente.KLINE_INTERVAL_1DAY or temporalidad == cliente.KLINE_INTERVAL_3DAY:
+                    klines = cliente.get_historical_klines(symbol=simbolo, interval=temporalidad, start_str='%s days ago' % limite, limit=limite)
+                elif temporalidad == cliente.KLINE_INTERVAL_1WEEK:
+                    klines = cliente.get_historical_klines(symbol=simbolo, interval=temporalidad, start_str='%s weeks ago' % limite, limit=limite)
+                elif temporalidad == cliente.KLINE_INTERVAL_1MONTH:
+                    klines = cliente.get_historical_klines(symbol=simbolo, interval=temporalidad, start_str='%s months ago' % limite, limit=limite)
+            data = pd.DataFrame(klines)
+            data = data.drop([6, 7, 8, 9, 10], axis=1)
+            columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'trades']
+            data.columns = columns
+            for col in columns:
+                data[col] = data[col].astype(float)
+            data['timestamp'] = pd.to_datetime(data['timestamp'] * 1000000)
+            return data  # retorna un DataFrame
+        else:
+            return existe
+    except Exception as e:
+        print('ERROR:', e)
 
 # Muestra el balance de mi cuenta
 def balance():
