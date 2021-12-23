@@ -90,7 +90,7 @@ class Estrategia1_ST():
 
 
 
-datos = funciones.datos_ticker('BTCUSDT', '1d', 'marzo 2021')
+datos = funciones.datos_ticker('DOTUSDT', '1d', 'marzo 2021')
 est1 = Estrategia1_ST() #se instancia la clase
 hma50 = est1.bt_hma(datos,50)
 hma80 = est1.bt_hma(datos,80)
@@ -105,7 +105,7 @@ datos['%'] = diferencia
 
 print('La relacion G/P en porcentaje es: ',datos['%'].sum(),'%')
 
-funciones.get_csv(datos, 'BTCUSSDT', '1d') #se genera el csv
+funciones.get_csv(datos, 'DOTUSDT', '1d') #se genera el csv
 
 plt.Figure(figsize=(10,5))
 plt.plot(datos['close'], label = 'Bitcoin')
