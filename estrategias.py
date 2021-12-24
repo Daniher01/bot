@@ -16,7 +16,7 @@ def cruce_hma(df, periodo_mayor, periodo_menor): #estrategia solo para opciones 
             print('HMA80: ', hma80)
             print('HMA50: ', hma50)
             market = None
-            if dos_velas_antes < vela_anterior and vela_anterior < precio_actual:
+            if dos_velas_antes < precio_actual and vela_anterior < precio_actual:
                 print('Oportunidad de compra')
                 precio_compra = precio_actual
                 market = True

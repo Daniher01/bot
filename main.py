@@ -36,16 +36,16 @@ class CriptoBot():
         cumple = estrategias.cruce_hma(self.data_df, self.HMA_L, self.HMA_C)
         return cumple
 
-    def order(self):
+    def avisar(self):
         """venta, comrpra, resumen llamado al metodo log"""
+        #avisar mediante telegram
         pass
 
-list = ['BTCUSDT', 'SOULSDT', 'DOTUSDT', 'LUNAUSDT']
+list = ['BTCUSDT', 'SOLUSDT', 'DOTUSDT', 'LUNAUSDT']
 for i in list:
     print(i)
     bot = CriptoBot(i,'1d', 80)
-    bot.last_data()
+    bot.estrategia()
     print('')
 
-#d = funciones.datos_ticker('BTCUSDT', '1d',80)
-#print(d)
+
