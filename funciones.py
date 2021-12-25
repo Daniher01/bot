@@ -79,6 +79,7 @@ def datos_ticker(simbolo, temporalidad,limite=False):
                     klines = cliente.get_historical_klines(symbol=simbolo, interval=temporalidad, start_str='%s weeks ago' % limite, limit=limite)
                 elif temporalidad == cliente.KLINE_INTERVAL_1MONTH:
                     klines = cliente.get_historical_klines(symbol=simbolo, interval=temporalidad, start_str='%s months ago' % limite, limit=limite)
+
             data = pd.DataFrame(klines)
             data = data.drop([6, 7, 8, 9, 10], axis=1)
             columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'trades']

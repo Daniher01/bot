@@ -4,15 +4,18 @@ from binance.exceptions import BinanceAPIException, BinanceOrderException
 import conexion
 import estrategias
 import funciones
+#import backtesting
+
+
 
 
 class CriptoBot():
-    def __init__(self, cripto, time, limite):
+    def __init__(self, time, limite):
         self.cliente = conexion.cliente
-        self.cripto = cripto
+        self.lista_cripto = ['BTCUSDT', 'SOLUSDT', 'DOTUSDT', 'LUNAUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT']
         self.time = time #temporalidad
         self.limite = limite
-        self.data_df = funciones.datos_ticker(self.cripto, self.time, self.limite) #trae los ultimos 80 dias
+        self.data_df = ''
         """Valores por defecto"""
         self.HMA_L = 80
         self.HMA_C = 50
@@ -21,31 +24,26 @@ class CriptoBot():
         """Resgistro de actividad del bot"""
         pass
 
-    """def parser(self, data_parser):
-        data = pd.concat([self.data_df, data_parser])
-        print(data)
-        return data"""
-
-    def last_data(self):
-        """actualizar datos necesarios para la toma de decisiones"""
-        self.estrategia()
-        return self.data_df
-
     def estrategia(self):
         """elegir estrategia"""
         cumple = estrategias.cruce_hma(self.data_df, self.HMA_L, self.HMA_C)
         return cumple
 
+    def cripto(self, cripto):
+        self.data_df = funciones.datos_ticker(cripto, self.time, self.limite)
+        print(cripto)
+        self.estrategia()
+        pass
+
     def avisar(self):
         """venta, comrpra, resumen llamado al metodo log"""
         #avisar mediante telegram
+        for i in self.lista_cripto:
+            self.data_df = funciones.datos_ticker(i, self.time, self.limite)
+            print(i)
+            self.estrategia()
+            print('')
         pass
 
-list = ['BTCUSDT', 'SOLUSDT', 'DOTUSDT', 'LUNAUSDT']
-for i in list:
-    print(i)
-    bot = CriptoBot(i,'1d', 80)
-    bot.estrategia()
-    print('')
 
 

@@ -1,116 +1,124 @@
-import backtrader as bt
-import datetime as dt
+import pandas as pd
+import numpy as np
+import talib as ta
 
-class Strategy(bt.Strategy):
-
-    def log(self, txt, dt=None):
-        dt = dt or self.datas[0].datetime.date(0)
-        print('%s, %s' % (dt.isoformat(), txt))
-
-
-    def __init__(self):
-        self.sma50 = bt.indicators.EMA(period=50)
-        self.sma80 = bt.indicators.EMA(period=80)
-        self.dataclose = self.datas[0].close
-
-
-    def prenext(self):
-        self.log('Close, %.2f' % self.dataclose[0])
-    def next(self):
-        self.log('Close, %.2f' % self.dataclose[0])
-
-        if self.sma80 > self.sma50 and self.dataclose[0] > self.sma80:
-            self.buy()
-            self.log('BUY CREATE, %.2f' % self.dataclose[0])
-        elif self.sma80 < self.sma50 and self.dataclose[0] < self.sma80:
-            self.sell()
-            self.log('SELL CREATE, %.2f' % self.dataclose[0])
-
-    def stop(self):
-        print(self.position)
-
-class Strategy1(bt.Strategy):
-
-    def log(self, txt, dt=None):
-        dt = dt or self.datas[0].datetime.date(0)
-        print('%s, %s' % (dt.isoformat(), txt))
-
-
-    def __init__(self):
-        self.sma50 = bt.indicators.SMA(period=50)
-        self.sma80 = bt.indicators.SMA(period=80)
-        self.dataclose = self.datas[0].close
-        self.order = None
-
-    def notify_order(self, order):
-        if order.status in [order.Submitted, order.Accepted]:
-            # Buy/Sell order submitted/accepted to/by broker - Nothing to do
-            return
-
-        # Check if an order has been completed
-        # Attention: broker could reject order if not enough cash
-        if order.status in [order.Completed]:
-            if order.isbuy():
-                self.log('BUY EXECUTED, %.2f' % order.executed.price)
-            elif order.issell():
-                self.log('SELL EXECUTED, %.2f' % order.executed.price)
-
-        elif order.status in [order.Canceled, order.Margin, order.Rejected]:
-            self.log('Order Canceled/Margin/Rejected')
-
-        # Write down: no pending order
-        self.order = None
-
-    def prenext(self):
-        self.log('Close, %.2f' % self.dataclose[0])
-    def next(self):
-        self.log('Close, %.2f' % self.dataclose[0])
-        if not self.position:
-            if self.sma80 > self.sma50 and self.dataclose[0] > self.sma80:
-                self.buy()
-                self.log('BUY CREATE, %.2f' % self.dataclose[0])
-        else:
-            if self.sma80 < self.sma50 and self.dataclose[0] < self.sma80:
-                self.sell()
-                self.log('SELL CREATE, %.2f' % self.dataclose[0])
-
-    def stop(self):
-        print(self.position)
-
-class RSIStrategy(bt.Strategy):
-    def __init__(self):
-        self.rsi = bt.talib.RSI(self.data, period=14)
-
-    def next(self):
-        if self.rsi < 30 and not self.position:
-            self.buy()
-        if self.rsi > 70 and self.position:
-            self.close()
-
+import estrategias
+import indicadores
+import funciones
+import matplotlib.pyplot as plt
 
 """
-COLOCAR EN EL MAIN
+Clase para realizar los backtesting manualmente
+RESPALDO DE LA CLASE BACKTESTING
 """
+class Estrategia1_ST():
+    #algoritmo para saber baktesting de estrategia HMA
+    def senial_hma(self, data, dolares):
+        compra = []
+        venta = []
+        diferencia = []
+        condicion = 0
+        for dia in range(len(data)):
+            if dia > 1:
+                vela_anterior = float(data['close'][dia-1:dia])
+                dos_Velas_antes = float(data['close'][dia-2:dia-1])
+                #AL MOMENTO DE COMPRAR
+            if data['hma80'][dia] > data['hma50'][dia] and dos_Velas_antes > data['hma80'][dia]:
+                if data['close'][dia] > vela_anterior and data['close'][dia] > dos_Velas_antes:
+                    if condicion != 1:
+                        compra.append(data['close'][dia])
+                        venta.append(np.nan)
+                        diferencia.append(np.nan)
+                        precio_compra = data['close'][dia]
+                        btc = dolares / precio_compra
+                        condicion = 1
+                    else:
+                        compra.append(np.nan)
+                        venta.append(np.nan)
+                        diferencia.append(np.nan)
+                else:
+                    compra.append(np.nan)
+                    venta.append(np.nan)
+                    diferencia.append(np.nan)
+                    #AL MOMENTO DE VENDER
+            elif data['hma80'][dia] < data['hma50'][dia] and data['close'][dia] < data['hma50'][dia] and condicion == 1:
+                if condicion != -1:
+                    venta.append(data['close'][dia])
+                    compra.append(np.nan)
+                    g_p = (data['close'][dia] - precio_compra) * btc * 1 #calculo ganancia perdida
+                    porcentaje_gp = (g_p*100)/dolares #g/p en porcentaje
+                    diferencia.append(porcentaje_gp)
+                    condicion = -1
+                else:
+                    compra.append(np.nan)
+                    venta.append(np.nan)
+                    diferencia.append(np.nan)
+            else:
+                compra.append(np.nan)
+                venta.append(np.nan)
+                diferencia.append(np.nan)
 
-"""
-cerebro = bt.Cerebro()
+        return compra, venta, diferencia
 
-data = bt.feeds.GenericCSVData(
-    name = 'BTC',
-    dataname = 'BTCUSDT-1h-data-enero 2021.csv',
-    timeframe = bt.TimeFrame.Days,
-    fromdate = dt.datetime(2021, 1, 20),
-    todate = dt.datetime(2021, 12, 20),
-    nullvalue = 0.0
-)
 
-cerebro.adddata(data)
-cerebro.addstrategy(testing_bt.Strategy1)
-cerebro.broker.setcash(10000)
-print('portafolio inicial: %.2f' %cerebro.broker.getvalue())
-cerebro.run()
-print('portafolio final: %.2f' %cerebro.broker.getvalue())
-"""
+
+    def bt_wma(self, df, periodo):
+        contador = 0
+        lista_close = [] #lista para guardar precios de cierra
+        lista_wma = [] #lista para guardar las wma de los precios
+        for i in df.close:
+            contador += 1
+            lista_close.append(i)
+            npy = np.array(lista_close)
+            d = ta.stream_WMA(npy, periodo)
+            lista_wma.append(d)
+            data_df = pd.DataFrame(lista_wma)
+        return data_df
+
+    def bt_hma(self, df, periodo):
+        contador = 0
+        lista_close = []  # lista para guardar precios de cierra
+        lista_wma = []  # lista para guardar las wma de los precios}
+        for i in df.close:
+            contador += 1
+            lista_close.append(i)
+            data = pd.DataFrame(lista_close)
+            data['close'] = data[0]
+            d = indicadores.HMA(data, periodo)
+            lista_wma.append(d)
+            data_df = pd.DataFrame(lista_wma)
+        return data_df
+
+
+
+datos = funciones.datos_ticker('BTCUSDT', '1d',160)
+est1 = Estrategia1_ST() #se instancia la clase
+hma50 = est1.bt_hma(datos,50)
+hma80 = est1.bt_hma(datos,80)
+print(hma50)
+print(hma80)
+datos['hma50'] = hma50[0]
+datos['hma80'] = hma80[0]
+
+compra, venta, diferencia = est1.senial_hma(datos, 50)
+datos['compra'] = compra
+datos['venta'] = venta
+datos['%'] = diferencia
+
+print('La relacion G/P en porcentaje es: ',datos['%'].sum(),'%')
+
+#funciones.get_csv(datos, 'DOTUSDT', '1d') #se genera el csv
+
+plt.Figure(figsize=(10,5))
+plt.plot(datos['close'], label = 'Bitcoin')
+plt.plot(datos['hma50'], label = 'HMA 50')
+plt.plot(datos['hma80'], label = 'HMA 80')
+plt.scatter(datos.index, datos['compra'], label ='Precio de compra', marker='^', color='black')
+plt.scatter(datos.index, datos['venta'], label ='Precio de venta', marker='v', color='red')
+plt.xlabel('Enero 2021 - Diciembre 2021')
+plt.ylabel('Precio cierra ($)')
+plt.legend(loc = 'upper left')
+plt.show()
 
 
 
