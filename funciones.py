@@ -1,3 +1,4 @@
+import shutil
 import time
 from datetime import datetime
 from conexion import cliente
@@ -98,25 +99,31 @@ def balance():
     try:
         info = cliente.get_account()
         balance = info['balances']
-        print('BALANCE DE MI CUENTA ')
+        list_balance = []
         for i in balance:
             if float(i['free']) > 0:
-                print(i['asset'] + ' ' + i['free'])
+                list_balance.append(i)
+        balance = pd.DataFrame(list_balance)
+        return balance
     except Exception as e:
         print('ERROR: ', e)
 
 
 #genera un CSV
 def get_csv(data, simbolo, temporalidad, save=True, star_data=False):
-    if star_data == False:
-        filename = '%s-%s-data-BT.csv' % (simbolo, temporalidad)
-    else:
-        filename = '%s-%s-data-%s.csv' % (simbolo, temporalidad, star_data)
-    print('Descargando todos los datos %s de %s...' % (temporalidad, simbolo))
-    if save:
-        data.to_csv(filename)
-    print('Datos cargados...')
-    return data
+    try:
+        if star_data == False:
+            filename = '%s-%s-data-BT.csv' % (simbolo, temporalidad)
+        else:
+            filename = '%s-%s-data-%s.csv' % (simbolo, temporalidad, star_data)
+        print('Descargando todos los datos %s de %s...' % (temporalidad, simbolo))
+        if save:
+            data.to_csv(filename)
+            print('Datos cargados...')
+        return data
+    except Exception as e:
+        print('ERROR: ',e)
+        return None
 
 
 # saber cantidad minima y maxima de compra

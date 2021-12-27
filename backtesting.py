@@ -119,9 +119,9 @@ class Estrategia1_ST():
 lista_cripto = ['BTCUSDT', 'SOLUSDT', 'DOTUSDT', 'LUNAUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT']
 for i in lista_cripto:
     data = Estrategia1_ST(i, '1d', 365, 500)
+    print('')
     print(i)
     datos = data.mostar_grafico()
-    print('')
     funciones.get_csv(datos, i, '1d') #se genera el csv
 
 

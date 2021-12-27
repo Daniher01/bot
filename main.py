@@ -4,10 +4,7 @@ from binance.exceptions import BinanceAPIException, BinanceOrderException
 import conexion
 import estrategias
 import funciones
-import backtesting
-
-
-
+#import backtesting
 
 class CriptoBot():
     def __init__(self, time, limite):
@@ -35,6 +32,7 @@ class CriptoBot():
         self.estrategia()
         pass
 
+
     def avisar(self):
         """venta, comrpra, resumen llamado al metodo log"""
         #avisar mediante telegram
@@ -42,9 +40,15 @@ class CriptoBot():
             self.data_df = funciones.datos_ticker(i, self.time, self.limite)
             print(i)
             self.estrategia()
+            balance = funciones.balance()
+            for d in range(len(balance)):
+                if balance['asset'][d] + 'USDT' == i:
+                    print('Ya tienes esa moneda')
             print('')
         pass
 
 
-#bot = CriptoBot('1d', 80)
-#bot.avisar()
+bot = CriptoBot('1d', 80)
+bot.avisar()
+
+
