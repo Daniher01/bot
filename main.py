@@ -4,7 +4,7 @@ from binance.exceptions import BinanceAPIException, BinanceOrderException
 import conexion
 import estrategias
 import funciones
-#import backtesting
+import backtesting
 
 
 
@@ -46,4 +46,5 @@ class CriptoBot():
         pass
 
 
-
+#bot = CriptoBot('1d', 80)
+#bot.avisar()

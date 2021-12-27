@@ -58,8 +58,8 @@ class Estrategia1_ST():
                 vela_anterior = float(self.datadf['close'][dia - 1:dia])
                 dos_Velas_antes = float(self.datadf['close'][dia - 2:dia - 1])
                 # AL MOMENTO DE COMPRAR
-            if self.datadf['hma80'][dia] > self.datadf['hma50'][dia] and dos_Velas_antes > self.datadf['hma80'][dia]:
-                if self.datadf['close'][dia] > vela_anterior and self.datadf['close'][dia] > dos_Velas_antes:
+            if self.datadf['hma80'][dia] > self.datadf['hma50'][dia] and self.datadf['close'][dia] > self.datadf['hma80'][dia]:
+                if self.datadf['close'][dia] > vela_anterior and self.datadf['close'][dia] > dos_Velas_antes and dos_Velas_antes > self.datadf['hma80'][dia]:
                     if condicion != 1:
                         compra.append(self.datadf['close'][dia])
                         venta.append(np.nan)
@@ -101,7 +101,7 @@ class Estrategia1_ST():
     def mostar_grafico(self):
         self.senial_hma()
         plt.Figure(figsize=(10, 5))
-        plt.plot(self.datadf['close'], label='Bitcoin')
+        plt.plot(self.datadf['close'], label=self.cripto)
         plt.plot(self.datadf['hma50'], label='HMA 50')
         plt.plot(self.datadf['hma80'], label='HMA 80')
         plt.scatter(self.datadf.index, self.datadf['compra'], label='Precio de compra', marker='^', color='black')
@@ -116,11 +116,12 @@ class Estrategia1_ST():
 
 
 
-
-data = Estrategia1_ST('BTCUSDT', '1d', 160, 500)
-datos = data.mostar_grafico()
-
-
-#funciones.get_csv(datos, 'ETHUSDT', '1d') #se genera el csv
+lista_cripto = ['BTCUSDT', 'SOLUSDT', 'DOTUSDT', 'LUNAUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT']
+for i in lista_cripto:
+    data = Estrategia1_ST(i, '1d', 365, 500)
+    print(i)
+    datos = data.mostar_grafico()
+    print('')
+    funciones.get_csv(datos, i, '1d') #se genera el csv
 
 
