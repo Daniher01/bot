@@ -1,5 +1,4 @@
 from datetime import datetime
-import time
 import conexion
 import estrategias
 import funciones
@@ -73,8 +72,8 @@ class CriptoBot():
                 print('ERROR: ',e)
                 self.RUN = False
   
-d = funciones.balance()
-print(d)
+bot = CriptoBot()
+bot.run() #avisa a las 23:55 hora del servidor
 
 
 
