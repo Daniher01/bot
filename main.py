@@ -1,21 +1,28 @@
-import numpy as np
-import pandas as pd
-from binance.exceptions import BinanceAPIException, BinanceOrderException
+from datetime import datetime
+import time
 import conexion
 import estrategias
 import funciones
 #import backtesting
 
 class CriptoBot():
-    def __init__(self, time, limite):
+    def __init__(self):
         self.cliente = conexion.cliente
         self.lista_cripto = ['BTCUSDT', 'SOLUSDT', 'DOTUSDT', 'LUNAUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT']
-        self.time = time #temporalidad
-        self.limite = limite
+        self.time = '1d'
+        self.limite = 80
         self.data_df = ''
         """Valores por defecto"""
         self.HMA_L = 80
         self.HMA_C = 50
+        self.sellsignal = False
+        self.buysignal = False
+        self.orden_status = None
+        self.orden = None
+        self.RUN = True
+        self.seconds = 0
+        self.minute = 0
+        self.hour = 0
 
     def log(self):
         """Resgistro de actividad del bot"""
@@ -32,6 +39,13 @@ class CriptoBot():
         self.estrategia()
         pass
 
+    def tiempo(self):
+        time_res = conexion.cliente.get_server_time()
+        ts = time_res.get('serverTime')
+        self.seconds = datetime.utcfromtimestamp(ts / 1000).second
+        self.minute = datetime.utcfromtimestamp(ts / 1000).minute
+        self.hour = datetime.utcfromtimestamp(ts / 1000).hour
+        pass
 
     def avisar(self):
         """venta, comrpra, resumen llamado al metodo log"""
@@ -45,10 +59,23 @@ class CriptoBot():
                 if balance['asset'][d] + 'USDT' == i:
                     print('Ya tienes esa moneda')
             print('')
-        pass
+        return self.data_df
+
+    def run(self):
+        while self.RUN:
+            try:
+                self.tiempo()
+                """CUANDO SEAN LAS 23:55 EN HORA DEL SERVIDOR"""
+                if self.hour == 23 and self.minute == 55:
+                    funciones.tiempo_server()
+                    self.avisar()
+            except Exception as e:
+                print('ERROR: ',e)
+                self.RUN = False
+  
+d = funciones.balance()
+print(d)
 
 
-bot = CriptoBot('1d', 80)
-bot.avisar()
 
-
+#TODO tiempo de espera, una vez al dia

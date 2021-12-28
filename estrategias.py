@@ -18,22 +18,20 @@ def cruce_hma(df, periodo_mayor, periodo_menor): #estrategia solo para opciones 
             market = None
             if dos_velas_antes > hma80 and vela_anterior < precio_actual and dos_velas_antes < precio_actual:
                 print('Oportunidad de compra')
-                precio_compra = precio_actual
                 market = True
-                if hma50 > hma80 and vela_anterior < hma50 and market == True:
-                    print('Cerrar Operacion')
-                    precio_cierre = precio_actual
-                    diferencia = precio_cierre - precio_compra
-                    print('G/P en operacion: ', diferencia)
-                    market = False
+        elif hma50 > hma80 and precio_actual < hma50:
+            print('cerrar 50% de operacion')
+            market = None
+            if hma50 > hma80 and vela_anterior < hma50:
+                print('Cerrar Operacion')
+                market = False
         else:
             print('No se esta cumpliendo la estrategia')
             market = None
-
     except Exception as e:
         market = None
-        print('ERROR: ', e)
-    return market
+        print('ERRORrr: ', e)
+        return market
     #retorna booleano
 
 

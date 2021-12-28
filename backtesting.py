@@ -58,8 +58,8 @@ class Estrategia1_ST():
                 vela_anterior = float(self.datadf['close'][dia - 1:dia])
                 dos_Velas_antes = float(self.datadf['close'][dia - 2:dia - 1])
                 # AL MOMENTO DE COMPRAR
-            if self.datadf['hma80'][dia] > self.datadf['hma50'][dia] and self.datadf['close'][dia] > self.datadf['hma80'][dia]:
-                if self.datadf['close'][dia] > vela_anterior and self.datadf['close'][dia] > dos_Velas_antes and dos_Velas_antes > self.datadf['hma80'][dia]:
+            if self.datadf['hma80'][dia] > self.datadf['hma50'][dia] and dos_Velas_antes > self.datadf['hma80'][dia]:
+                if self.datadf['close'][dia] > vela_anterior and dos_Velas_antes < self.datadf['close'][dia] :
                     if condicion != 1:
                         compra.append(self.datadf['close'][dia])
                         venta.append(np.nan)
@@ -117,11 +117,11 @@ class Estrategia1_ST():
 
 
 lista_cripto = ['BTCUSDT', 'SOLUSDT', 'DOTUSDT', 'LUNAUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT']
-for i in lista_cripto:
-    data = Estrategia1_ST(i, '1d', 365, 500)
-    print('')
-    print(i)
-    datos = data.mostar_grafico()
-    funciones.get_csv(datos, i, '1d') #se genera el csv
+#for i in lista_cripto:
+data = Estrategia1_ST('BTCUSDT', '1d', 365, 500)
+#print('')
+#print(i)
+datos = data.mostar_grafico()
+funciones.get_csv(datos, 'BTCUSDT', '1d') #se genera el csv
 
 

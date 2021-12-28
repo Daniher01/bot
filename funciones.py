@@ -133,9 +133,11 @@ def cantidad_min_max(simbolo):
         info = cliente.get_symbol_info(simbolo)
         cant_min = float(info['filters'][2].get('minQty'))
         cant_max = float(info['filters'][2].get('maxQty'))
+        min_notional = float(info['filters'][3].get('minNotional'))
         print('Par: ' + simbolo)
         print('Cantidad minima a comprar: ', cant_min)
         print('Cantidad maxima a comprar: ', cant_max)
-        return cant_min, cant_max
+        print('Cantidad minima a comprar en $: ', min_notional)
+        return cant_min, cant_max, min_notional
     else:
         print('No existe ese par')
