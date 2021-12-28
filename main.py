@@ -1,4 +1,6 @@
 from datetime import datetime
+
+#import bot_tl
 import conexion
 import estrategias
 import funciones
@@ -72,9 +74,15 @@ class CriptoBot():
                 print('ERROR: ',e)
                 self.RUN = False
   
-bot = CriptoBot()
-bot.run() #avisa a las 23:55 hora del servidor
+
+""""@conexion.tl.message_handler(commands=['start', 'help'])
+def send_welcome(message, msj='Mensaje de prueba'):
+    conexion.tl.reply_to(message, msj)
+
+@conexion.tl.message_handler(func=lambda message: True)
+def echo_all(message):
+    conexion.tl.reply_to(message, message.text)
+
+conexion.tl.polling()"""
 
 
-
-#TODO tiempo de espera, una vez al dia
