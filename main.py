@@ -4,7 +4,7 @@ from datetime import datetime
 import conexion
 import estrategias
 import funciones
-#import backtesting
+import backtesting
 
 class CriptoBot():
     def __init__(self):
@@ -24,6 +24,7 @@ class CriptoBot():
         self.seconds = 0
         self.minute = 0
         self.hour = 0
+
 
     def log(self):
         """Resgistro de actividad del bot"""
@@ -86,3 +87,4 @@ def echo_all(message):
 conexion.tl.polling()"""
 
 
+#d = funciones.balance()

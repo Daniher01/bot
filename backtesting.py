@@ -13,15 +13,16 @@ Clase para realizar los backtesting manualmente
 class Estrategia1_ST():
     #algoritmo para saber baktesting de estrategia HMA
 
-    def __init__(self, cripto, time, limite, dolares):
+    def __init__(self, cripto, time, limite=False):
         self.cripto = cripto
         self.time = time
         self.limite = limite
         self.datadf = funciones.datos_ticker(self.cripto, self.time, self.limite) #trae los ultimos 80 dias
-        self.dolares = dolares
+        self.dolares = 10
         """Valores por defecto"""
         self.HMA_L = 80
         self.HMA_C = 50
+        self.op_compra = []
 
 
     def bt_hma(self, periodo):
@@ -67,6 +68,7 @@ class Estrategia1_ST():
                         precio_compra = self.datadf['close'][dia]
                         btc = self.dolares / precio_compra
                         condicion = 1
+                        self.op_compra.append(1)
                     else:
                         compra.append(np.nan)
                         venta.append(np.nan)
@@ -98,8 +100,65 @@ class Estrategia1_ST():
         self.datadf['%'] = diferencia
         return self.datadf
 
+    """Si el precio de venta es menor al precio de compra, no vende, sigue acumulando"""
+    def senial_2(self):
+        compra = []
+        venta = []
+        diferencia = []
+        condicion = 0
+        hma50 = self.bt_hma(self.HMA_C)
+        hma80 = self.bt_hma(self.HMA_L)
+        self.datadf['hma50'] = hma50[0]
+        self.datadf['hma80'] = hma80[0]
+        for dia in range(len(self.datadf)):
+            if dia > 1:
+                vela_anterior = float(self.datadf['close'][dia - 1:dia])
+                dos_Velas_antes = float(self.datadf['close'][dia - 2:dia - 1])
+                # AL MOMENTO DE COMPRAR
+            if self.datadf['hma80'][dia] > self.datadf['hma50'][dia] and dos_Velas_antes > self.datadf['hma80'][dia]:
+                if self.datadf['close'][dia] > vela_anterior and dos_Velas_antes < self.datadf['close'][dia]:
+                    if condicion != 1:
+                        compra.append(self.datadf['close'][dia])
+                        venta.append(np.nan)
+                        diferencia.append(np.nan)
+                        precio_compra = self.datadf['close'][dia]
+                        btc = self.dolares/ precio_compra
+                        condicion = 1
+                        self.op_compra.append(1)
+                    else:
+                        compra.append(np.nan)
+                        venta.append(np.nan)
+                        diferencia.append(np.nan)
+                else:
+                    compra.append(np.nan)
+                    venta.append(np.nan)
+                    diferencia.append(np.nan)
+                    # AL MOMENTO DE VENDER
+            elif self.datadf['hma80'][dia] < self.datadf['hma50'][dia] and vela_anterior < self.datadf['hma50'][dia] and self.datadf['close'][dia] < \
+                    self.datadf['hma80'][dia] :
+                if condicion == 1 and precio_compra < self.datadf['close'][dia]:
+                    venta.append(self.datadf['close'][dia])
+                    compra.append(np.nan)
+                    porcentaje_gp = self.g_p(self.datadf['close'][dia], precio_compra, btc)
+                    diferencia.append(porcentaje_gp)
+                    condicion = -1
+                else:
+                    compra.append(np.nan)
+                    venta.append(np.nan)
+                    diferencia.append(np.nan)
+            else:
+                compra.append(np.nan)
+                venta.append(np.nan)
+                diferencia.append(np.nan)
+
+        self.datadf['compra'] = compra
+        self.datadf['venta'] = venta
+        self.datadf['%'] = diferencia
+        return self.datadf
+
+
     def mostar_grafico(self):
-        self.senial_hma()
+        self.senial_2()
         plt.Figure(figsize=(10, 5))
         plt.plot(self.datadf['close'], label=self.cripto)
         plt.plot(self.datadf['hma50'], label='HMA 50')
@@ -110,18 +169,26 @@ class Estrategia1_ST():
         plt.ylabel('Precio cierra ($)')
         plt.legend(loc='upper left')
         plt.show()
-        print('La relacion G/P en porcentaje es: ', self.datadf['%'].sum(), '%')
-        return self.datadf
+        print('La relacion G/P en porcentaje para ', self.cripto, ' es: ', self.datadf['%'].sum(), '%')
+        porcentaje = self.datadf['%'].sum()
+        return self.datadf, porcentaje
 
 
 
 
 lista_cripto = ['BTCUSDT', 'SOLUSDT', 'DOTUSDT', 'LUNAUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT']
-#for i in lista_cripto:
-data = Estrategia1_ST('BTCUSDT', '1d', 365, 500)
-#print('')
-#print(i)
-datos = data.mostar_grafico()
-funciones.get_csv(datos, 'BTCUSDT', '1d') #se genera el csv
+lista = []
+for i in lista_cripto:
+    data = Estrategia1_ST(i, '1d', 365)
+    print('')
+    print(i)
+    datos, porcentaje = data.mostar_grafico()
+    lista.append(porcentaje)
+    print(len(data.op_compra))
+sum_portafolio = pd.DataFrame(lista)
+print('la G/p del portafolio es: ',sum_portafolio.sum())
+
+
+#funciones.get_csv(datos, 'BTCUSDT', '1d') #se genera el csv
 
 

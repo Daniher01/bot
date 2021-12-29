@@ -1,7 +1,8 @@
 from indicadores import *
 import funciones
 
-def cruce_hma(df, periodo_mayor, periodo_menor): #estrategia solo para opciones BUY
+
+def cruce_hma(self, df, periodo_mayor, periodo_menor): #estrategia solo para opciones BUY
     try:
         precio_actual = float(df['close'][-1:])
         vela_anterior = float(df['close'][-2:-1])
@@ -15,23 +16,22 @@ def cruce_hma(df, periodo_mayor, periodo_menor): #estrategia solo para opciones 
             print('Cruce medias moviles')
             print('HMA80: ', hma80)
             print('HMA50: ', hma50)
-            market = None
+            self.Market = None
             if dos_velas_antes > hma80 and vela_anterior < precio_actual and dos_velas_antes < precio_actual:
                 print('Oportunidad de compra')
-                market = True
+                self.Market = True
         elif hma50 > hma80 and precio_actual < hma50:
             print('cerrar 50% de operacion')
-            market = None
-            if hma50 > hma80 and vela_anterior < hma50:
+            self.Market = None
+            if hma50 > hma80 and vela_anterior < hma50 and precio_actual < hma80:
                 print('Cerrar Operacion')
-                market = False
+                self.Market = False
         else:
             print('No se esta cumpliendo la estrategia')
-            market = None
+            self.Market = None
     except Exception as e:
-        market = None
+        self.Market = None
         print('ERRORrr: ', e)
-        return market
+        return self.Market
     #retorna booleano
-
 
