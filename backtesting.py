@@ -116,19 +116,16 @@ class Estrategia1_ST():
                 dos_Velas_antes = float(self.datadf['close'][dia - 2:dia - 1])
                 # AL MOMENTO DE COMPRAR
             if self.datadf['hma80'][dia] > self.datadf['hma50'][dia] and dos_Velas_antes > self.datadf['hma80'][dia]:
-                if self.datadf['close'][dia] > vela_anterior and dos_Velas_antes < self.datadf['close'][dia]:
-                    if condicion != 1:
-                        compra.append(self.datadf['close'][dia])
-                        venta.append(np.nan)
-                        diferencia.append(np.nan)
-                        precio_compra = self.datadf['close'][dia]
-                        btc = self.dolares/ precio_compra
-                        condicion = 1
-                        self.op_compra.append(1)
-                    else:
-                        compra.append(np.nan)
-                        venta.append(np.nan)
-                        diferencia.append(np.nan)
+                if self.datadf['close'][dia] > vela_anterior and self.datadf['close'][dia] > dos_Velas_antes:
+                    #if condicion != 1:
+                    compra.append(self.datadf['close'][dia])
+                    venta.append(np.nan)
+                    diferencia.append(np.nan)
+                    precio_compra = self.datadf['close'][dia]
+                    btc = self.dolares/ precio_compra
+                    condicion = 1
+                    self.op_compra.append(1)
+
                 else:
                     compra.append(np.nan)
                     venta.append(np.nan)
@@ -185,10 +182,11 @@ for i in lista_cripto:
     datos, porcentaje = data.mostar_grafico()
     lista.append(porcentaje)
     print(len(data.op_compra))
+    funciones.get_csv(datos, i, '1d')  # se genera el csv
 sum_portafolio = pd.DataFrame(lista)
 print('la G/p del portafolio es: ',sum_portafolio.sum())
 
 
-#funciones.get_csv(datos, 'BTCUSDT', '1d') #se genera el csv
+
 
 
