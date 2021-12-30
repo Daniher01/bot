@@ -1,10 +1,13 @@
+import os.path
+import time
 from datetime import datetime
-
 #import bot_tl
+import pandas as pd
+
 import conexion
-import estrategias
+from estrategias import *
 import funciones
-import backtesting
+#import backtesting
 
 class CriptoBot():
     def __init__(self):
@@ -16,30 +19,39 @@ class CriptoBot():
         """Valores por defecto"""
         self.HMA_L = 80
         self.HMA_C = 50
-        self.sellsignal = False
-        self.buysignal = False
-        self.orden_status = None
-        self.orden = None
         self.RUN = True
+        self.accion = 0 #1 esta en compra, -1 esta en venta
+        self.precio_compra = 0 #guardar el precio al momento de hacer la compra
+        self.descripcion = 'Registro_compra' #descripcion para el nombre del csv
         self.seconds = 0
         self.minute = 0
         self.hour = 0
 
-
-    def log(self):
+    def log(self, cripto, precio_compra):
         """Resgistro de actividad del bot"""
+        old, new = funciones.tiempo_server()
+        lista_registro = [[cripto], [precio_compra], [new]]
+        registro_df = pd.DataFrame(lista_registro)
+        funciones.get_csv(registro_df, cripto, self.descripcion)
         pass
 
-    def estrategia(self):
+    def buscar_moneda(self, cripto):
+        balance = funciones.balance()
+        for d in range(len(balance)):
+            if balance['asset'][d] + 'USDT' == cripto:
+                return cripto
+
+    def estrategia(self, cripto):
         """elegir estrategia"""
-        cumple = estrategias.cruce_hma(self.data_df, self.HMA_L, self.HMA_C)
+        estrategias = Cruce_hma(self.data_df, self.HMA_L, self.HMA_C)
+        self.precio_compra = estrategias.buy() #precion de compra
+        if os.path.exists('%s-%s-data.csv' % (cripto, self.descripcion)):
+            print('HOLA')
+            registros_df = funciones.leer_csv(cripto, self.descripcion) #se lee el precion de compra
+            precio_compra = registros_df[1][2]
+            estrategias.sell(precio_compra)
+        cumple = estrategias.market
         return cumple
-
-    def cripto(self, cripto):
-        self.data_df = funciones.datos_ticker(cripto, self.time, self.limite)
-        print(cripto)
-        self.estrategia()
-        pass
 
     def tiempo(self):
         time_res = conexion.cliente.get_server_time()
@@ -49,19 +61,26 @@ class CriptoBot():
         self.hour = datetime.utcfromtimestamp(ts / 1000).hour
         pass
 
-    def avisar(self):
-        """venta, comrpra, resumen llamado al metodo log"""
-        #avisar mediante telegram
-        for i in self.lista_cripto:
-            self.data_df = funciones.datos_ticker(i, self.time, self.limite)
-            print(i)
-            self.estrategia()
-            balance = funciones.balance()
-            for d in range(len(balance)):
-                if balance['asset'][d] + 'USDT' == i:
-                    print('Ya tienes esa moneda')
-            print('')
-        return self.data_df
+
+    def avisar(self, cripto):
+        self.data_df = funciones.datos_ticker(cripto, self.time, self.limite)
+        print(cripto)
+        self.accion = self.estrategia(cripto)
+        if self.accion == 2:
+            print('cruce medias moviles')
+        elif self.accion == 1:
+            print('oportunidad de compra')
+            self.log(cripto, self.precio_compra)
+        elif self.accion == -2:
+            print('cierra 50 porciento')
+        elif self.accion == -1:
+            print('cierra todo')
+        else:
+            print('no hay entradas ni salidas')
+        moneda = self.buscar_moneda(cripto)
+        if moneda == cripto:
+            print('Ya tienes esa moneda')
+        print('')
 
     def run(self):
         while self.RUN:
@@ -70,7 +89,8 @@ class CriptoBot():
                 """CUANDO SEAN LAS 23:55 EN HORA DEL SERVIDOR"""
                 if self.hour == 23 and self.minute == 55:
                     funciones.tiempo_server()
-                    self.avisar()
+                    for i in self.lista_cripto:
+                        self.avisa(i)
             except Exception as e:
                 print('ERROR: ',e)
                 self.RUN = False
@@ -87,4 +107,8 @@ def echo_all(message):
 conexion.tl.polling()"""
 
 
-#d = funciones.balance()
+bot = CriptoBot()
+for i in bot.lista_cripto:
+    bot.avisar(i)
+
+
