@@ -1,3 +1,4 @@
+import csv
 import shutil
 import time
 from datetime import datetime
@@ -103,6 +104,7 @@ def balance():
         for i in balance:
             if float(i['free']) > 0:
                 list_balance.append(i)
+                i['precio_compra'] = i['free']
         balance = pd.DataFrame(list_balance)
         return balance
     except Exception as e:
@@ -113,7 +115,7 @@ def balance():
 def get_csv(data, simbolo, temporalidad, save=True, star_data=False):
     try:
         if star_data == False:
-            filename = '%s-%s-data-BT.csv' % (simbolo, temporalidad)
+            filename = '%s-%s-data.csv' % (simbolo, temporalidad)
         else:
             filename = '%s-%s-data-%s.csv' % (simbolo, temporalidad, star_data)
         print('Descargando todos los datos %s de %s...' % (temporalidad, simbolo))
@@ -121,6 +123,20 @@ def get_csv(data, simbolo, temporalidad, save=True, star_data=False):
             data.to_csv(filename)
             print('Datos cargados...')
         return data
+    except Exception as e:
+        print('ERROR: ',e)
+        return None
+
+def leer_csv(simbolo, descripcion):
+    try:
+        lista_datos = []
+        with open('%s-%s-data.csv' % (simbolo, descripcion), newline='') as File:
+            reader = csv.reader(File)
+            for row in reader:
+                lista_datos.append(row)
+        datos_df = pd.DataFrame(lista_datos)
+        datos_df = datos_df.drop(datos_df.index[[0]])
+        return datos_df
     except Exception as e:
         print('ERROR: ',e)
         return None
