@@ -118,6 +118,7 @@ class CriptoBot():
         if self.hour == 00:
             update.message.reply_text('Puedes ejecutar ordenes...')
         else:
+            old, new = funciones.tiempo_server()
             update.message.reply_text(f'Espera a que sean las 12 hora del servidor... \n {new}')
         for i in self.lista_cripto:
             update.message.reply_text(self.avisar(i))
