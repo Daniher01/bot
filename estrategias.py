@@ -55,7 +55,7 @@ class Cruce_hma():
     def buy(self):
         if self.hma80 > self.hma50 and self.precio_actual > self.hma80:
             self.market = 2
-            if self.hma80 > self.hma50 and self.dos_velas_antes > self.hma80:
+            if self.hma80 > self.hma50 and self.vela_anterior > self.hma80:
                 if self.precio_actual > self.dos_velas_antes and self.precio_actual > self.vela_anterior:
                     self.market = 1
         return self.precio_actual
