@@ -95,11 +95,10 @@ class CriptoBot():
         self.mensaje = (f'{cripto} \n {aviso} \n {moneda_tiene}')
         return self.mensaje
 
-    def run(self): #automatizar el solo mostrar la estrategia
+    def start(self,update, context): #automatizar el solo mostrar la estrategia
         updater = Updater(config.TOKEN, use_context=True)
-
-        while self.RUN: #updater.start_polling() #TODO en su defecto
-            updater.bot.send_message(config.CHAT_ID, 'Corriendo Bot...')
+        updater.bot.send_message(config.CHAT_ID, 'Corriendo bot...')
+        while self.RUN:
             self.tiempo()
             if self.hour == 00:  # a las 12 hora del servidor
                 updater.bot.send_message(config.CHAT_ID, 'Puedes Ejecutar Ordenes...')
@@ -109,35 +108,18 @@ class CriptoBot():
                                          f'Se recomienda esperar a que sean las 12 hora del servidor... \n {new}')
             for i in self.lista_cripto:
                 updater.bot.send_message(config.CHAT_ID, self.avisar(i))
+            time.sleep((60*60)*4) #cada 4 horas se va a ejecutar
 
 
-        pass
-
-    def start(self, update, context):
-        self.tiempo()
-        if self.hour == 00:
-            update.message.reply_text('Puedes ejecutar ordenes...')
-        else:
-            old, new = funciones.tiempo_server()
-            update.message.reply_text(f'Espera a que sean las 12 hora del servidor... \n {new}')
-        for i in self.lista_cripto:
-            update.message.reply_text(self.avisar(i))
-
-
-    def main(self):
+    def run(self):
         # ejecuta en telegram
         updater = Updater(config.TOKEN, use_context=True)
         updater.dispatcher.add_handler(CommandHandler('start', self.start))
-        updater.dispatcher.add_handler(CommandHandler('get_lista', self.get_list_cripto))
-        #updater.dispatcher.add_handler(CommandHandler('balance', funciones.balance))
-        self.tiempo()
-        if self.minute == 49:
-            updater.bot.send_message(config.CHAT_ID, 'PRUEBA Bot...')
 
         # start
         updater.start_polling()
         print('listo para utilizar')
-        updater.bot.send_message(config.CHAT_ID, 'Corriendo bot...')
+
 
         # me quedo esperando
         updater.idle()
