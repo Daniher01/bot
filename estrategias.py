@@ -51,39 +51,20 @@ class Cruce_hma():
         self.balance = funciones.balance()
         self.lista_precio = []
 
-    """def buscar_moneda(self, cripto):
-        for d in range(len(self.balance)):
-            if self.balance['asset'][d] + 'USDT' == cripto:
-                precio = self.balance['precio_compra'][d]
-                return precio
-
-    def agg_precio(self, cripto):
-        for d in range(len(self.balance)):
-            if self.balance['asset'][d] + 'USDT' == cripto:
-              if float(self.balance['free'][d]) > 0:
-                  self.balance['precio_compra'] = self.balance['precio_compra'].replace([str(self.balance['free'][d])],self.precio_actual)
-        print(self.balance)
-        pass"""
 
     def buy(self):
         if self.hma80 > self.hma50 and self.precio_actual > self.hma80:
-            print('Cruce medias moviles')
-            print('HMA80: ', self.hma80)
-            print('HMA50: ', self.hma50)
             self.market = 2
-        if self.hma80 > self.hma50 and self.dos_velas_antes > self.hma80:
-            if self.precio_actual > self.dos_velas_antes and self.precio_actual > self.vela_anterior:
-                print('Oportunidad de compra')
-                self.market = 1
+            if self.hma80 > self.hma50 and self.dos_velas_antes > self.hma80:
+                if self.precio_actual > self.dos_velas_antes and self.precio_actual > self.vela_anterior:
+                    self.market = 1
         return self.precio_actual
 
     def sell(self, precio_compra):
         if self.hma80 < self.hma50 and self.precio_actual < self.hma50 and self.market == 1 and float(precio_compra) < self.precio_actual:
             self.compra_precio = 0
             self.market = -2
-            print('Cierra el 50%')
             if self.precio_actual < self.hma80 and self.vela_anterior < self.hma50:
                 self.market = -1
-                print('Cierra operacion')
 
 

@@ -1,12 +1,12 @@
-import os.path
 import time
+from os import path, remove
 from datetime import datetime
-#import bot_tl
-import pandas as pd
-
+from telegram.ext import Updater, CommandHandler
 import conexion
+import config
 from estrategias import *
 import funciones
+import requests
 #import backtesting
 
 class CriptoBot():
@@ -23,6 +23,8 @@ class CriptoBot():
         self.accion = 0 #1 esta en compra, -1 esta en venta
         self.precio_compra = 0 #guardar el precio al momento de hacer la compra
         self.descripcion = 'Registro_compra' #descripcion para el nombre del csv
+        self.mensaje = None
+        """Se le asigna el tiempo del servidor"""
         self.seconds = 0
         self.minute = 0
         self.hour = 0
@@ -32,7 +34,15 @@ class CriptoBot():
         old, new = funciones.tiempo_server()
         lista_registro = [[cripto], [precio_compra], [new]]
         registro_df = pd.DataFrame(lista_registro)
-        funciones.get_csv(registro_df, cripto, self.descripcion)
+        if not path.exists('%s-%s-data.csv' % (cripto, self.descripcion)):
+            funciones.get_csv(registro_df, cripto, self.descripcion)
+        pass
+
+    #mostrar la lista de cripto
+    def get_list_cripto(self,update, context):
+        update.message.reply_text(f'Lista de criptomonedas para la estrategia')
+        for cripto in self.lista_cripto:
+            update.message.reply_text(cripto)
         pass
 
     def buscar_moneda(self, cripto):
@@ -45,11 +55,12 @@ class CriptoBot():
         """elegir estrategia"""
         estrategias = Cruce_hma(self.data_df, self.HMA_L, self.HMA_C)
         self.precio_compra = estrategias.buy() #precion de compra
-        if os.path.exists('%s-%s-data.csv' % (cripto, self.descripcion)):
-            print('HOLA')
+        if path.exists('%s-%s-data.csv' % (cripto, self.descripcion)): #para la venta
+            print('Leyendo el precio de compra')
             registros_df = funciones.leer_csv(cripto, self.descripcion) #se lee el precion de compra
             precio_compra = registros_df[1][2]
-            estrategias.sell(precio_compra)
+            #estrategias.sell(precio_compra)
+            remove('%s-%s-data.csv' % (cripto, self.descripcion)) #se lee el precio y elimina el archivo
         cumple = estrategias.market
         return cumple
 
@@ -64,51 +75,75 @@ class CriptoBot():
 
     def avisar(self, cripto):
         self.data_df = funciones.datos_ticker(cripto, self.time, self.limite)
-        print(cripto)
         self.accion = self.estrategia(cripto)
         if self.accion == 2:
-            print('cruce medias moviles')
+            aviso=f'Cruce medias moviles \n HMA80: {self.HMA_L} \n HMA50: {self.HMA_C}'
         elif self.accion == 1:
-            print('oportunidad de compra')
+            aviso='Oportunidad de compra'
             self.log(cripto, self.precio_compra)
         elif self.accion == -2:
-            print('cierra 50 porciento')
+            aviso='Cierra 50%'
         elif self.accion == -1:
-            print('cierra todo')
+            aviso='cierra todo'
         else:
-            print('no hay entradas ni salidas')
+            aviso='No hay entradas ni salidas'
         moneda = self.buscar_moneda(cripto)
         if moneda == cripto:
-            print('Ya tienes esa moneda')
-        print('')
+            moneda_tiene='Ya tienes esa moneda'
+        else:
+            moneda_tiene='No tienes esa moneda'
+        self.mensaje = (f'{cripto} \n {aviso} \n {moneda_tiene}')
+        return self.mensaje
 
-    def run(self):
-        while self.RUN:
-            try:
-                self.tiempo()
-                """CUANDO SEAN LAS 23:55 EN HORA DEL SERVIDOR"""
-                if self.hour == 23 and self.minute == 55:
-                    funciones.tiempo_server()
-                    for i in self.lista_cripto:
-                        self.avisa(i)
-            except Exception as e:
-                print('ERROR: ',e)
-                self.RUN = False
-  
+    def run(self): #automatizar el solo mostrar la estrategia
+        updater = Updater(config.TOKEN, use_context=True)
 
-""""@conexion.tl.message_handler(commands=['start', 'help'])
-def send_welcome(message, msj='Mensaje de prueba'):
-    conexion.tl.reply_to(message, msj)
-
-@conexion.tl.message_handler(func=lambda message: True)
-def echo_all(message):
-    conexion.tl.reply_to(message, message.text)
-
-conexion.tl.polling()"""
+        while self.RUN: #updater.start_polling() #TODO en su defecto
+            updater.bot.send_message(config.CHAT_ID, 'Corriendo Bot...')
+            self.tiempo()
+            if self.hour == 00:  # a las 12 hora del servidor
+                updater.bot.send_message(config.CHAT_ID, 'Puedes Ejecutar Ordenes...')
+            else:
+                old, new = funciones.tiempo_server()
+                updater.bot.send_message(config.CHAT_ID,
+                                         f'Se recomienda esperar a que sean las 12 hora del servidor... \n {new}')
+            for i in self.lista_cripto:
+                updater.bot.send_message(config.CHAT_ID, self.avisar(i))
 
 
-bot = CriptoBot()
-for i in bot.lista_cripto:
-    bot.avisar(i)
+        pass
+
+    def start(self, update, context):
+        self.tiempo()
+        if self.hour == 00:
+            update.message.reply_text('Puedes ejecutar ordenes...')
+        else:
+            update.message.reply_text(f'Espera a que sean las 12 hora del servidor... \n {new}')
+        for i in self.lista_cripto:
+            update.message.reply_text(self.avisar(i))
+
+
+    def main(self):
+        # ejecuta en telegram
+        updater = Updater(config.TOKEN, use_context=True)
+        updater.dispatcher.add_handler(CommandHandler('start', self.start))
+        updater.dispatcher.add_handler(CommandHandler('get_lista', self.get_list_cripto))
+        #updater.dispatcher.add_handler(CommandHandler('balance', funciones.balance))
+        self.tiempo()
+        if self.minute == 49:
+            updater.bot.send_message(config.CHAT_ID, 'PRUEBA Bot...')
+
+        # start
+        updater.start_polling()
+        print('listo para utilizar')
+        updater.bot.send_message(config.CHAT_ID, 'Corriendo bot...')
+
+        # me quedo esperando
+        updater.idle()
+
+
+bot = CriptoBot() #instancia el bot
+bot.run()
+
 
 
