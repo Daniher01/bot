@@ -24,6 +24,8 @@ class CriptoBot():
         self.precio_compra = 0 #guardar el precio al momento de hacer la compra
         self.descripcion = 'Registro_compra' #descripcion para el nombre del csv
         self.mensaje = None
+        self.tradingView_pag = 'https://WWW.tradingview.com/chart/UBCV9gCj/?symbol='
+        self.binance_pag = 'https://www.binance.com/es/trade/'
         """Se le asigna el tiempo del servidor"""
         self.seconds = 0
         self.minute = 0
@@ -96,33 +98,43 @@ class CriptoBot():
         return self.mensaje
 
     def start(self,update, context): #automatizar el solo mostrar la estrategia
-        updater = Updater(config.TOKEN, use_context=True)
-        updater.bot.send_message(config.CHAT_ID, 'Corriendo bot...')
-        while self.RUN:
-            self.tiempo()
-            if self.hour == 00:  # a las 12 hora del servidor
-                updater.bot.send_message(config.CHAT_ID, 'Puedes Ejecutar Ordenes...')
-            else:
-                old, new = funciones.tiempo_server()
-                updater.bot.send_message(config.CHAT_ID,
-                                         f'Se recomienda esperar a que sean las 12 hora del servidor... \n {new}')
-            for i in self.lista_cripto:
-                updater.bot.send_message(config.CHAT_ID, self.avisar(i))
-            time.sleep((60*60)*4) #cada 4 horas se va a ejecutar
+        try:
+            updater = Updater(config.TOKEN, use_context=True)
+            updater.bot.send_message(config.CHAT_ID, 'Corriendo bot...')
+            while self.RUN:
+                self.tiempo()
+                for i in self.lista_cripto:
+                    updater.bot.send_message(config.CHAT_ID, self.avisar(i))
+                    if self.accion == 2 and self.hour == 00:
+                        updater.bot.send_message(config.CHAT_ID, 'Puedes Ejecutar Ordenes...')
+                        updater.bot.send_message(config.CHAT_ID, f'Pagina TradingView: \n {self.tradingView_pag}{i}')
+                        updater.bot.send_message(config.CHAT_ID, f'Pagina Binance: \n {self.binance_pag}{i}')
+                    else:
+                        old, new = funciones.tiempo_server()
+                        updater.bot.send_message(config.CHAT_ID,
+                                                 f'Se recomienda esperar a que sean las 12 hora del servidor... \n {new}')
+                time.sleep((60*60)*4) #cada 4 horas se va a ejecutar
+        except Exception as e:
+            updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
+            print('ERROR: ',e)
 
 
     def run(self):
-        # ejecuta en telegram
-        updater = Updater(config.TOKEN, use_context=True)
-        updater.dispatcher.add_handler(CommandHandler('start', self.start))
+        try:
+            # ejecuta en telegram
+            updater = Updater(config.TOKEN, use_context=True)
+            updater.dispatcher.add_handler(CommandHandler('start', self.start))
 
-        # start
-        updater.start_polling()
-        print('listo para utilizar')
+            # start
+            updater.start_polling()
+            print('listo para utilizar')
 
 
-        # me quedo esperando
-        updater.idle()
+            # me quedo esperando
+            updater.idle()
+        except Exception as e:
+            updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
+            print('ERROR: ', e)
 
 
 bot = CriptoBot() #instancia el bot
