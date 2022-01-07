@@ -99,21 +99,23 @@ class CriptoBot():
 
     def start(self,update, context): #automatizar el solo mostrar la estrategia
         try:
+            old, new = funciones.tiempo_server()
+            self.tiempo()
             updater = Updater(config.TOKEN, use_context=True)
-            updater.bot.send_message(config.CHAT_ID, 'Corriendo bot...')
+            updater.bot.send_message(config.CHAT_ID, f'Corriendo bot... \n {new}')
             while self.RUN:
-                self.tiempo()
-                for i in self.lista_cripto:
-                    updater.bot.send_message(config.CHAT_ID, self.avisar(i))
-                    if self.accion == 2 and self.hour == 00:
-                        updater.bot.send_message(config.CHAT_ID, 'Puedes Ejecutar Ordenes...')
-                        updater.bot.send_message(config.CHAT_ID, f'Pagina TradingView: \n {self.tradingView_pag}{i}')
-                        updater.bot.send_message(config.CHAT_ID, f'Pagina Binance: \n {self.binance_pag}{i}')
-                    else:
-                        old, new = funciones.tiempo_server()
-                        updater.bot.send_message(config.CHAT_ID,
-                                                 f'Se recomienda esperar a que sean las 12 hora del servidor... \n {new}')
-                time.sleep((60*60)*4) #cada 4 horas se va a ejecutar
+                if self.hour % 4 == 0: # si la hora es multiplo de 4 (cada 4 horas)
+                    for i in self.lista_cripto:
+                        updater.bot.send_message(config.CHAT_ID, self.avisar(i))
+                        if self.accion == 2 and self.hour == 00:
+                            updater.bot.send_message(config.CHAT_ID, 'Puedes Ejecutar Ordenes...')
+                            updater.bot.send_message(config.CHAT_ID, f'Pagina TradingView: \n {self.tradingView_pag}{i}')
+                            updater.bot.send_message(config.CHAT_ID, f'Pagina Binance: \n {self.binance_pag}{i}')
+                        else:
+                            updater.bot.send_message(config.CHAT_ID,
+                                                     f'Se recomienda esperar a que sean las 12 hora del servidor... \n {new}')
+                    time.sleep((60 * 60) * 4)  # cada 4 horas se va a ejecutar
+
         except Exception as e:
             updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
             print('ERROR: ',e)
@@ -139,6 +141,4 @@ class CriptoBot():
 
 bot = CriptoBot() #instancia el bot
 bot.run()
-
-
 
