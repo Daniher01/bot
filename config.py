@@ -7,5 +7,5 @@ API_SECRET = ""
 """
 conenctarse a la api de telegram
 """
-TOKEN = "5069591251:"
+TOKEN = ""
 CHAT_ID = ""
