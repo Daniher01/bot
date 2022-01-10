@@ -61,7 +61,7 @@ class CriptoBot():
             print('Leyendo el precio de compra')
             registros_df = funciones.leer_csv(cripto, self.descripcion) #se lee el precion de compra
             precio_compra = registros_df[1][2]
-            #estrategias.sell(precio_compra)
+            estrategias.sell(precio_compra)
             remove('%s-%s-data.csv' % (cripto, self.descripcion)) #se lee el precio y elimina el archivo
         cumple = estrategias.market
         return cumple
