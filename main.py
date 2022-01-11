@@ -126,12 +126,11 @@ class CriptoBot():
             # ejecuta en telegram
             updater = Updater(config.TOKEN, use_context=True)
             updater.dispatcher.add_handler(CommandHandler('start', self.start))
+            print('Conexion con Telegram Exitosa')
 
             # start
             updater.start_polling()
             print('listo para utilizar')
-
-
             # me quedo esperando
             updater.idle()
         except Exception as e:
