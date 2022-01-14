@@ -177,9 +177,8 @@ class CriptoBot():
             self.tiempo()
             updater = Updater(config.TOKEN, use_context=True)
             updater.bot.send_message(config.CHAT_ID, f'Hora del servidor: \n {new}')
-            #while self.RUN:
-            #if self.hour % 4 == 0: # si la hora es multiplo de 4 (cada 4 horas)
-            self.get_lista_criptos()
+            if len(self.lista_cripto) < 1:
+                self.get_lista_criptos()
             for i in self.lista_cripto:
                 existe = funciones.existe_par(i)
                 if existe == True:
