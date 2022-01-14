@@ -65,17 +65,11 @@ class CriptoBot():
         updater = Updater(config.TOKEN, use_context=True)
         if len(self.lista_cripto) < 1:
             self.get_lista_criptos()
-            df_lista_cripto = pd.DataFrame(self.lista_cripto)
-            columns = ['Pares de Criptos']
-            df_lista_cripto.columns = columns
-            df_lista_cripto.set_index('Pares de Criptos')
-            updater.bot.send_message(config.CHAT_ID, f'{df_lista_cripto}')
-        else:
-            df_lista_cripto = pd.DataFrame(self.lista_cripto)
-            columns = ['Pares de Criptos']
-            df_lista_cripto.columns = columns
-            df_lista_cripto.set_index('Pares de Criptos')
-            updater.bot.send_message(config.CHAT_ID, f'{df_lista_cripto}')
+        df_lista_cripto = pd.DataFrame(self.lista_cripto)
+        columns = ['Pares de Criptos']
+        df_lista_cripto.columns = columns
+        df_lista_cripto.set_index('Pares de Criptos')
+        updater.bot.send_message(config.CHAT_ID, f'{df_lista_cripto}')
         pass
 
 
