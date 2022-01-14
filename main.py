@@ -63,7 +63,8 @@ class CriptoBot():
     #muestra la lista de criptos en telegram
     def mostrar_lista_cripto(self,update, context):
         updater = Updater(config.TOKEN, use_context=True)
-        self.get_lista_criptos()
+        if len(self.lista_cripto) < 1:
+            self.get_lista_criptos()
         df_lista_cripto = pd.DataFrame(self.lista_cripto)
         columns = ['Pares de Criptos']
         df_lista_cripto.columns = columns
