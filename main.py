@@ -6,16 +6,19 @@ import conexion
 import config
 from estrategias import *
 import funciones
+import csv
 import requests
 #import backtesting
 
 class CriptoBot():
     def __init__(self):
         self.cliente = conexion.cliente
-        self.lista_cripto = ['BTCUSDT', 'SOLUSDT', 'DOTUSDT', 'LUNAUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT']
+        self.lista_cripto = []
         self.time = '1d'
         self.limite = 80
         self.data_df = ''
+        self.valor_hma80 = ''
+        self.valor_hma50 = ''
         """Valores por defecto"""
         self.HMA_L = 80
         self.HMA_C = 50
@@ -40,11 +43,18 @@ class CriptoBot():
             funciones.get_csv(registro_df, cripto, self.descripcion)
         pass
 
-    #mostrar la lista de cripto
-    def get_list_cripto(self,update, context):
-        update.message.reply_text(f'Lista de criptomonedas para la estrategia')
-        for cripto in self.lista_cripto:
-            update.message.reply_text(cripto)
+    #lee la lista de criptos
+    def get_lista_criptos(self):
+        if path.exists('Lista_criptos.csv'):
+            print('Leyendo el precio de compra')
+            with open('Lista_criptos.csv', newline='') as File:
+                reader = csv.reader(File)
+                for row in reader:
+                    for i in row:
+                        self.lista_cripto.append(i)
+        else:
+            self.lista_cripto = ['BTCUSDT', 'SOLUSDT', 'DOTUSDT', 'LUNAUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT']
+            print('No existe el CSV con la lista de criptos')
         pass
 
     def buscar_moneda(self, cripto):
@@ -56,10 +66,10 @@ class CriptoBot():
     def estrategia(self, cripto):
         """elegir estrategia"""
         estrategias = Cruce_hma(self.data_df, self.HMA_L, self.HMA_C)
-        self.precio_compra = estrategias.buy() #precion de compra
+        self.valor_hma80,self.valor_hma50 ,self.precio_compra = estrategias.buy() #precion de compra
         if path.exists('%s-%s-data.csv' % (cripto, self.descripcion)): #para la venta
             print('Leyendo el precio de compra')
-            registros_df = funciones.leer_csv(cripto, self.descripcion) #se lee el precion de compra
+            registros_df = funciones.leer_csv(cripto, self.descripcion) #se lee el precio de compra
             precio_compra = registros_df[1][2]
             estrategias.sell(precio_compra)
             remove('%s-%s-data.csv' % (cripto, self.descripcion)) #se lee el precio y elimina el archivo
@@ -79,7 +89,7 @@ class CriptoBot():
         self.data_df = funciones.datos_ticker(cripto, self.time, self.limite)
         self.accion = self.estrategia(cripto)
         if self.accion == 2:
-            aviso=f'Cruce medias moviles \n HMA80: {self.HMA_L} \n HMA50: {self.HMA_C}'
+            aviso=f'Cruce medias moviles \n HMA80: {self.valor_hma80} \n HMA50: {self.valor_hma50}'
         elif self.accion == 1:
             aviso='Oportunidad de compra'
             self.log(cripto, self.precio_compra)
@@ -105,15 +115,20 @@ class CriptoBot():
             updater.bot.send_message(config.CHAT_ID, f'Corriendo bot... \n {new}')
             while self.RUN:
                 if self.hour % 4 == 0: # si la hora es multiplo de 4 (cada 4 horas)
+                    self.get_lista_criptos() #TODO importantisimo
                     for i in self.lista_cripto:
-                        updater.bot.send_message(config.CHAT_ID, self.avisar(i))
-                        if self.accion == 2 and self.hour == 00:
-                            updater.bot.send_message(config.CHAT_ID, 'Puedes Ejecutar Ordenes...')
-                            updater.bot.send_message(config.CHAT_ID, f'Pagina TradingView: \n {self.tradingView_pag}{i}')
-                            updater.bot.send_message(config.CHAT_ID, f'Pagina Binance: \n {self.binance_pag}{i}')
+                        existe = funciones.existe_par(i)
+                        if existe == True:
+                            updater.bot.send_message(config.CHAT_ID, self.avisar(i))
+                            if self.accion == 2 and self.hour == 00:
+                                updater.bot.send_message(config.CHAT_ID, 'Puedes Ejecutar Ordenes...')
+                                updater.bot.send_message(config.CHAT_ID, f'Pagina TradingView: \n {self.tradingView_pag}{i}')
+                                updater.bot.send_message(config.CHAT_ID, f'Pagina Binance: \n {self.binance_pag}{i}')
+                            else:
+                                updater.bot.send_message(config.CHAT_ID,
+                                                         f'Se recomienda esperar a que sean las 12 hora del servidor... \n {new}')
                         else:
-                            updater.bot.send_message(config.CHAT_ID,
-                                                     f'Se recomienda esperar a que sean las 12 hora del servidor... \n {new}')
+                            updater.bot.send_message(config.CHAT_ID, f'No existe el par {i}')
                     time.sleep((60 * 60) * 4)  # cada 4 horas se va a ejecutar
 
         except Exception as e:
