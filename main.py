@@ -1,12 +1,16 @@
+import threading
 import time
 from os import path, remove
 from datetime import datetime
+import os
+import pandas as pd
 from telegram.ext import Updater, CommandHandler
 import conexion
 import config
 from estrategias import *
 import funciones
 import csv
+from csv import writer
 import requests
 #import backtesting
 
@@ -26,6 +30,7 @@ class CriptoBot():
         self.accion = 0 #1 esta en compra, -1 esta en venta
         self.precio_compra = 0 #guardar el precio al momento de hacer la compra
         self.descripcion = 'Registro_compra' #descripcion para el nombre del csv
+        self.csv_cripto = 'Lista_criptos.csv' #nombre del CSV donde esta la lista de las criptos
         self.mensaje = None
         self.tradingView_pag = 'https://WWW.tradingview.com/chart/UBCV9gCj/?symbol='
         self.binance_pag = 'https://www.binance.com/es/trade/'
@@ -45,17 +50,75 @@ class CriptoBot():
 
     #lee la lista de criptos
     def get_lista_criptos(self):
-        if path.exists('Lista_criptos.csv'):
-            print('Leyendo el precio de compra')
-            with open('Lista_criptos.csv', newline='') as File:
+        if path.exists(self.csv_cripto):
+            with open(self.csv_cripto, newline='') as File:
                 reader = csv.reader(File)
                 for row in reader:
-                    for i in row:
-                        self.lista_cripto.append(i)
+                    self.lista_cripto.append(row[0])
         else:
             self.lista_cripto = ['BTCUSDT', 'SOLUSDT', 'DOTUSDT', 'LUNAUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT']
             print('No existe el CSV con la lista de criptos')
+            pass
+
+    #muestra la lista de criptos en telegram
+    def mostrar_lista_cripto(self,update, context):
+        updater = Updater(config.TOKEN, use_context=True)
+        self.get_lista_criptos()
+        df_lista_cripto = pd.DataFrame(self.lista_cripto)
+        columns = ['Pares de Criptos']
+        df_lista_cripto.columns = columns
+        df_lista_cripto.set_index('Pares de Criptos')
+        updater.bot.send_message(config.CHAT_ID, f'{df_lista_cripto}')
         pass
+
+
+    #agrega criptos a la lista
+    def agregar_criptos(self, cripto):
+        try:
+            lista =[cripto]
+            if path.exists(self.csv_cripto):
+                self.get_lista_criptos()
+                for i in self.lista_cripto:
+                    if i == cripto:
+                        ya_existe = True
+                    else:
+                        ya_existe = False
+                if ya_existe == False:
+                    df_cripto = pd.DataFrame(lista)
+                    df_cripto.to_csv(self.csv_cripto, index=None, mode='a',header=not os.path.isfile(self.csv_cripto))
+                    return True
+                else:
+                    return False
+        except Exception as e:
+            print('Error: ',e)
+            return None
+
+    #elimina criptos de la lista
+    def elimina_criptos(self,cripto):
+         try:
+             if path.exists(self.csv_cripto):
+                 lista = []
+                 self.get_lista_criptos()
+                 for i in self.lista_cripto:
+                     if i == cripto:
+                         ya_existe = True
+                     else:
+                         ya_existe = False
+                 if ya_existe == True:
+                     with open(self.csv_cripto, newline='') as file:
+                         reader = csv.reader(file)
+                         for row in reader:
+                             if row[0] != cripto:
+                                 lista.append(row[0])
+                         datos_df = pd.DataFrame(lista)
+                         datos_df.to_csv(self.csv_cripto, index=None,header=not os.path.isfile(self.csv_cripto))
+                         return True
+                 else:
+                    return False
+         except Exception as e:
+            print('ERRORs: ', e)
+            return None
+
 
     def buscar_moneda(self, cripto):
         balance = funciones.balance()
@@ -112,25 +175,23 @@ class CriptoBot():
             old, new = funciones.tiempo_server()
             self.tiempo()
             updater = Updater(config.TOKEN, use_context=True)
-            updater.bot.send_message(config.CHAT_ID, f'Corriendo bot... \n {new}')
-            while self.RUN:
-                if self.hour % 4 == 0: # si la hora es multiplo de 4 (cada 4 horas)
-                    self.get_lista_criptos() #TODO importantisimo
-                    for i in self.lista_cripto:
-                        existe = funciones.existe_par(i)
-                        if existe == True:
-                            updater.bot.send_message(config.CHAT_ID, self.avisar(i))
-                            if self.accion == 2 and self.hour == 00:
-                                updater.bot.send_message(config.CHAT_ID, 'Puedes Ejecutar Ordenes...')
-                                updater.bot.send_message(config.CHAT_ID, f'Pagina TradingView: \n {self.tradingView_pag}{i}')
-                                updater.bot.send_message(config.CHAT_ID, f'Pagina Binance: \n {self.binance_pag}{i}')
-                            else:
-                                updater.bot.send_message(config.CHAT_ID,
-                                                         f'Se recomienda esperar a que sean las 12 hora del servidor... \n {new}')
-                        else:
-                            updater.bot.send_message(config.CHAT_ID, f'No existe el par {i}')
-                    time.sleep((60 * 60) * 4)  # cada 4 horas se va a ejecutar
-
+            updater.bot.send_message(config.CHAT_ID, f'Hora del servidor: \n {new}')
+            #while self.RUN:
+            #if self.hour % 4 == 0: # si la hora es multiplo de 4 (cada 4 horas)
+            self.get_lista_criptos()
+            for i in self.lista_cripto:
+                existe = funciones.existe_par(i)
+                if existe == True:
+                    updater.bot.send_message(config.CHAT_ID, self.avisar(i))
+                    if self.accion == 2 and self.hour == 00:
+                        updater.bot.send_message(config.CHAT_ID, 'Puedes Ejecutar Ordenes...')
+                        updater.bot.send_message(config.CHAT_ID, f'Pagina TradingView: \n {self.tradingView_pag}{i}')
+                        updater.bot.send_message(config.CHAT_ID, f'Pagina Binance: \n {self.binance_pag}{i}')
+                    else:
+                        updater.bot.send_message(config.CHAT_ID,
+                                                 f'Se recomienda esperar a que sean las 12 hora del servidor... \n {new}')
+                else:
+                    updater.bot.send_message(config.CHAT_ID, f'No existe el par {i}')
         except Exception as e:
             updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
             print('ERROR: ',e)
@@ -141,13 +202,17 @@ class CriptoBot():
             # ejecuta en telegram
             updater = Updater(config.TOKEN, use_context=True)
             updater.dispatcher.add_handler(CommandHandler('start', self.start))
+            updater.dispatcher.add_handler(CommandHandler('lista', self.mostrar_lista_cripto))
+            updater.dispatcher.add_handler(CommandHandler('agregar', self.agregar_criptos, pass_args=True))
             print('Conexion con Telegram Exitosa')
-
             # start
             updater.start_polling()
+            updater.bot.send_message(config.CHAT_ID, f'Corriendo bot...')
             print('listo para utilizar')
             # me quedo esperando
             updater.idle()
+
+
         except Exception as e:
             updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
             print('ERROR: ', e)
@@ -155,4 +220,3 @@ class CriptoBot():
 
 bot = CriptoBot() #instancia el bot
 bot.run()
-
