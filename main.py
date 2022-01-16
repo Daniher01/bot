@@ -46,6 +46,8 @@ class CriptoBot():
         registro_df = pd.DataFrame(lista_registro)
         if not path.exists('%s-%s-data.csv' % (cripto, self.descripcion)):
             funciones.get_csv(registro_df, cripto, self.descripcion)
+        else:
+            pass
         pass
 
     #lee la lista de criptos
@@ -135,8 +137,9 @@ class CriptoBot():
             print('Leyendo el precio de compra')
             registros_df = funciones.leer_csv(cripto, self.descripcion) #se lee el precio de compra
             precio_compra = registros_df[1][2]
-            estrategias.sell(precio_compra)
-            remove('%s-%s-data.csv' % (cripto, self.descripcion)) #se lee el precio y elimina el archivo
+            vender = estrategias.sell(precio_compra)
+            if vender == True:
+                remove('%s-%s-data.csv' % (cripto, self.descripcion)) #se lee el precio y elimina el archivo
         cumple = estrategias.market
         return cumple
 
@@ -183,15 +186,16 @@ class CriptoBot():
                 existe = funciones.existe_par(i)
                 if existe == True:
                     updater.bot.send_message(config.CHAT_ID, self.avisar(i))
-                    if self.accion == 2 and self.hour == 00:
-                        updater.bot.send_message(config.CHAT_ID, 'Puedes Ejecutar Ordenes...')
+                    if self.accion == 1:
                         updater.bot.send_message(config.CHAT_ID, f'Pagina TradingView: \n {self.tradingView_pag}{i}')
                         updater.bot.send_message(config.CHAT_ID, f'Pagina Binance: \n {self.binance_pag}{i}')
-                    else:
-                        updater.bot.send_message(config.CHAT_ID,
-                                                 f'Se recomienda esperar a que sean las 12 hora del servidor... \n {new}')
                 else:
                     updater.bot.send_message(config.CHAT_ID, f'No existe el par {i}')
+            if self.hour == 00:
+                updater.bot.send_message(config.CHAT_ID, 'Puedes Ejecutar Ordenes...')
+            else:
+                updater.bot.send_message(config.CHAT_ID,
+                                         f'Se recomienda esperar a que sean las 12 hora del servidor... \n {new}')
         except Exception as e:
             updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
             print('ERROR: ',e)

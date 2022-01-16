@@ -32,6 +32,9 @@ class Cruce_hma():
             self.market = -2
             if self.precio_actual < self.hma80 and self.vela_anterior < self.hma50:
                 self.market = -1
-        pass
+                return True
+            else:
+                return False
+
 
 
