@@ -52,21 +52,23 @@ class CriptoBot():
 
     #lee la lista de criptos
     def get_lista_criptos(self):
-        if path.exists(self.csv_cripto):
+        lista = []
+        if not path.exists(self.csv_cripto):
+            self.lista_cripto = ['BTCUSDT', 'SOLUSDT', 'DOTUSDT', 'LUNAUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT']
+            print('No existe el CSV con la lista de criptos')
+        else:
             with open(self.csv_cripto, newline='') as File:
                 reader = csv.reader(File)
                 for row in reader:
-                    self.lista_cripto.append(row[0])
-        else:
-            self.lista_cripto = ['BTCUSDT', 'SOLUSDT', 'DOTUSDT', 'LUNAUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT']
-            print('No existe el CSV con la lista de criptos')
-            pass
+                    if len(row[0]) > 0:
+                        lista.append(row[0])
+            self.lista_cripto = lista
+        return lista
 
     #muestra la lista de criptos en telegram
     def mostrar_lista_cripto(self,update, context):
         updater = Updater(config.TOKEN, use_context=True)
-        if len(self.lista_cripto) < 1:
-            self.get_lista_criptos()
+        self.get_lista_criptos()
         df_lista_cripto = pd.DataFrame(self.lista_cripto)
         columns = ['Pares de Criptos']
         df_lista_cripto.columns = columns
@@ -76,29 +78,47 @@ class CriptoBot():
 
 
     #agrega criptos a la lista
-    def agregar_criptos(self, cripto):
+    def agregar_criptos(self, update, context):
         try:
+            updater = Updater(config.TOKEN, use_context=True)
+            cripto = context.args
+            cripto = cripto[0]
             lista =[cripto]
-            if path.exists(self.csv_cripto):
-                self.get_lista_criptos()
-                for i in self.lista_cripto:
-                    if i == cripto:
-                        ya_existe = True
+            if funciones.existe_par(cripto):
+                if path.exists(self.csv_cripto):
+                    self.get_lista_criptos()
+                    for i in self.lista_cripto:
+                        if i == cripto:
+                            ya_existe = True
+                            break
+                        else:
+                            ya_existe = False
+                    if ya_existe == False:
+                        if len(cripto) > 0:
+                            df_cripto = pd.DataFrame(lista)
+                            df_cripto.to_csv(self.csv_cripto, index=None, mode='a',header=not os.path.isfile(self.csv_cripto))
+                            updater.bot.send_message(config.CHAT_ID, f'Se agrego {cripto} a la lista')
+                            return True
+                        else:
+                            updater.bot.send_message(config.CHAT_ID, f'Asegurese de haber ingresado datos')
+                            return False
                     else:
-                        ya_existe = False
-                if ya_existe == False:
-                    df_cripto = pd.DataFrame(lista)
-                    df_cripto.to_csv(self.csv_cripto, index=None, mode='a',header=not os.path.isfile(self.csv_cripto))
-                    return True
-                else:
-                    return False
+                        updater.bot.send_message(config.CHAT_ID, f'Ya existe esta moneda en la lista')
+                        return False
+            else:
+                updater.bot.send_message(config.CHAT_ID, f'No existe el par {cripto} en Binance')
+                return False
         except Exception as e:
+            updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
             print('Error: ',e)
             return None
 
     #elimina criptos de la lista
-    def elimina_criptos(self,cripto):
+    def elimina_criptos(self,update, context):
          try:
+             updater = Updater(config.TOKEN, use_context=True)
+             cripto = context.args
+             cripto = cripto[0]
              if path.exists(self.csv_cripto):
                  lista = []
                  self.get_lista_criptos()
@@ -108,17 +128,24 @@ class CriptoBot():
                      else:
                          ya_existe = False
                  if ya_existe == True:
-                     with open(self.csv_cripto, newline='') as file:
-                         reader = csv.reader(file)
-                         for row in reader:
-                             if row[0] != cripto:
-                                 lista.append(row[0])
-                         datos_df = pd.DataFrame(lista)
-                         datos_df.to_csv(self.csv_cripto, index=None,header=not os.path.isfile(self.csv_cripto))
-                         return True
+                     if len(cripto) > 0:
+                         with open(self.csv_cripto, newline='') as file:
+                             reader = csv.reader(file)
+                             for row in reader:
+                                 if row[0] != cripto:
+                                     lista.append(row[0])
+                             datos_df = pd.DataFrame(lista)
+                             datos_df.to_csv(self.csv_cripto, index=None,header=not os.path.isfile(self.csv_cripto))
+                             updater.bot.send_message(config.CHAT_ID, f'Se elimino {cripto} de la lista')
+                             return True
+                     else:
+                         updater.bot.send_message(config.CHAT_ID, f'Aseguerese de haber ingresado datos')
+                         return False
                  else:
+                    updater.bot.send_message(config.CHAT_ID, f'{cripto} no esta en la lista')
                     return False
          except Exception as e:
+            updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
             print('ERRORs: ', e)
             return None
 
@@ -180,6 +207,7 @@ class CriptoBot():
             self.tiempo()
             updater = Updater(config.TOKEN, use_context=True)
             updater.bot.send_message(config.CHAT_ID, f'Hora del servidor: \n {new}')
+            self.get_lista_criptos()
             if len(self.lista_cripto) < 1:
                 self.get_lista_criptos()
             for i in self.lista_cripto:
@@ -208,6 +236,7 @@ class CriptoBot():
             updater.dispatcher.add_handler(CommandHandler('start', self.start))
             updater.dispatcher.add_handler(CommandHandler('lista', self.mostrar_lista_cripto))
             updater.dispatcher.add_handler(CommandHandler('agregar', self.agregar_criptos, pass_args=True))
+            updater.dispatcher.add_handler(CommandHandler('eliminar', self.elimina_criptos, pass_args=True))
             print('Conexion con Telegram Exitosa')
             # start
             updater.start_polling()
