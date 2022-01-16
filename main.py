@@ -1,5 +1,3 @@
-import threading
-import time
 from os import path, remove
 from datetime import datetime
 import os
@@ -10,8 +8,6 @@ import config
 from estrategias import *
 import funciones
 import csv
-from csv import writer
-import requests
 #import backtesting
 
 class CriptoBot():
@@ -81,8 +77,8 @@ class CriptoBot():
     def agregar_criptos(self, update, context):
         try:
             updater = Updater(config.TOKEN, use_context=True)
-            cripto = context.args
-            cripto = cripto[0]
+            argumento = context.args
+            cripto = argumento[0]
             lista =[cripto]
             if funciones.existe_par(cripto):
                 if path.exists(self.csv_cripto):
@@ -94,7 +90,7 @@ class CriptoBot():
                         else:
                             ya_existe = False
                     if ya_existe == False:
-                        if len(cripto) > 0:
+                        if len(argumento) > 0:
                             df_cripto = pd.DataFrame(lista)
                             df_cripto.to_csv(self.csv_cripto, index=None, mode='a',header=not os.path.isfile(self.csv_cripto))
                             updater.bot.send_message(config.CHAT_ID, f'Se agrego {cripto} a la lista')
@@ -117,8 +113,8 @@ class CriptoBot():
     def elimina_criptos(self,update, context):
          try:
              updater = Updater(config.TOKEN, use_context=True)
-             cripto = context.args
-             cripto = cripto[0]
+             argumento = context.args
+             cripto = argumento[0]
              if path.exists(self.csv_cripto):
                  lista = []
                  self.get_lista_criptos()
@@ -128,7 +124,7 @@ class CriptoBot():
                      else:
                          ya_existe = False
                  if ya_existe == True:
-                     if len(cripto) > 0:
+                     if len(argumento) > 0:
                          with open(self.csv_cripto, newline='') as file:
                              reader = csv.reader(file)
                              for row in reader:

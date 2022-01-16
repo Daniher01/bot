@@ -1,9 +1,6 @@
 import csv
-import shutil
-import time
 from datetime import datetime
 from conexion import cliente
-import os
 import pandas as pd
 
 """
