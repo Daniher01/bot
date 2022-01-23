@@ -5,10 +5,11 @@ import pandas as pd
 from telegram.ext import Updater, CommandHandler
 import conexion
 import config
+import indicadores
 from estrategias import *
 import funciones
 import csv
-#import backtesting
+import backtesting
 
 class CriptoBot():
     def __init__(self):
@@ -247,5 +248,5 @@ class CriptoBot():
             print('ERROR: ', e)
 
 
-bot = CriptoBot() #instancia el bot
-bot.run()
+#bot = CriptoBot() #instancia el bot
+#bot.run()
