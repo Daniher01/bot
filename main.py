@@ -9,7 +9,7 @@ import indicadores
 from estrategias import *
 import funciones
 import csv
-import backtesting
+#import backtesting
 
 class CriptoBot():
     def __init__(self):
@@ -247,6 +247,97 @@ class CriptoBot():
             updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
             print('ERROR: ', e)
 
+class bot_tendencia():
+    def __init__(self):
+        self.cliente = conexion.cliente
+        self.lista_cripto = ['BTCUSDT', 'DOTUSDT', 'LUNAUSDT', 'ROSEUSDT']
+        self.time = '1d'
+        self.limite = 200
+        self.data_df = ''
+        self.valor_hma80 = 0
+        self.valor_hma50 = 0
+        self.valor_hma200 = 0
+        self.precio = 0
+        """VALORES POR DEFECTO"""
+        self.HMA_50 = 50
+        self.HMA_80 = 80
+        self.HMA_200 = 200
+        self.RUN = True
+        self.mensaje = None
+        self.alcista = None
+        """Se le asigna el tiempo del servidor"""
+        self.seconds = 0
+        self.minute = 0
+        self.hour = 0
 
-#bot = CriptoBot() #instancia el bot
-#bot.run()
+    def tiempo(self):
+        time_res = conexion.cliente.get_server_time()
+        ts = time_res.get('serverTime')
+        self.seconds = datetime.utcfromtimestamp(ts / 1000).second
+        self.minute = datetime.utcfromtimestamp(ts / 1000).minute
+        self.hour = datetime.utcfromtimestamp(ts / 1000).hour
+        pass
+
+    def buscar_moneda(self, cripto):
+        balance = funciones.balance()
+        for d in range(len(balance)):
+            if balance['asset'][d] + 'USDT' == cripto:
+                return cripto
+
+    def estrategia(self):
+        """elegir estrategia"""
+        estrategias = Cruce_hma(self.data_df, self.HMA_200, self.HMA_80, self.HMA_50)
+        self.valor_hma50,self.valor_hma80, self.valor_hma200 ,self.precio = estrategias.alcista_bajista() #tendencia
+        return estrategias.es_alcista
+
+    def avisar(self,cripto):
+        self.data_df = funciones.datos_ticker(cripto, self.time, self.limite)
+        self.alcista =  self.estrategia()
+        if self.alcista == True:
+            aviso = f'Tendencia Alcista\n HMA50: {self.valor_hma50} \n HMA80: {self.valor_hma80} \n HMA200: {self.valor_hma200} \n PRECIO: {self.precio}'
+        elif self.alcista == False:
+            aviso = f'Tendencia Bajista\n HMA50: {self.valor_hma50} \n HMA80: {self.valor_hma80} \n HMA200: {self.valor_hma200} \n PRECIO: {self.precio}'
+        else:
+            aviso = f'No hay Tendencia definida \n HMA50: {self.valor_hma50} \n HMA80: {self.valor_hma80} \n HMA200: {self.valor_hma200} \n PRECIO: {self.precio}'
+
+        moneda = self.buscar_moneda(cripto)
+        if moneda == cripto:
+            moneda_tiene = 'Ya tienes esa moneda'
+        else:
+            moneda_tiene = 'No tienes esa moneda'
+
+        self.mensaje = (f'{cripto} \n {aviso} \n {moneda_tiene}')
+        return self.mensaje
+
+    def start(self, update):
+        try:
+            old, new = funciones.tiempo_server()
+            self.tiempo()
+            updater = Updater(config.TOKEN, use_context=True)
+            updater.bot.send_message(config.CHAT_ID, f'Hora del servidor: \n {new}')
+            for i in self.lista_cripto:
+                existe = funciones.existe_par(i)
+                if existe == True:
+                    updater.bot.send_message(config.CHAT_ID, self.avisar(i))
+            updater.bot.send_message(config.CHAT_ID, f'Verifique los valores de las Medias Moviles de Hull')
+
+        except Exception as e:
+            updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
+            print('ERROR: ',e)
+
+    def run(self):
+        try:
+            updater = Updater(config.TOKEN, use_context=True)
+            self.tiempo()
+            updater.start_polling()
+            updater.bot.send_message(config.CHAT_ID, f'Corriendo bot...')
+            print('listo para utilizar')
+            while self.RUN == True:
+                if self.hour == 00 and self.minute == 00 and self.seconds == 00:
+                    self.start(updater)
+        except Exception as e:
+            updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
+            print('ERROR METODO RUN: ', e)
+
+bot = bot_tendencia() #instancia el bot
+bot.run()

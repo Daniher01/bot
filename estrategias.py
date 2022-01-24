@@ -2,23 +2,24 @@ from indicadores import *
 import funciones
 
 class Cruce_hma():
-    def __init__(self, df, periodo_mayor_mayor,periodo_mayor, periodo_menor):
+    def __init__(self, df, periodo_mayor_mayor,periodo_medio, periodo_menor):
         self.market = 0
         self.df = df
         self.periodo_mayor_mayor = periodo_mayor_mayor
-        self.periodo_mayor = periodo_mayor
+        self.periodo_mayor = periodo_medio
         self.periodo_menor = periodo_menor
         self.precio_actual = float(self.df['close'][-1:])
         self.vela_anterior = float(self.df['close'][-2:-1])
         self.dos_velas_antes = float(self.df['close'][-3:-2])
         self.hma_200 = HMA(df, periodo_mayor_mayor)
         self.hma200 = self.hma_200 + (self.periodo_mayor_mayor * 0.0053)
-        self.hma_80 = HMA(self.df, periodo_mayor)
+        self.hma_80 = HMA(self.df, periodo_medio)
         self.hma80 = self.hma_80 + (self.hma_80 * 0.022)  # acercar lo mas posible al valor debido a la variacion
         self.hma_50 = HMA(df, periodo_menor)
         self.hma50 = self.hma_50 + (self.hma_50 * 0.0053)
         self.balance = funciones.balance()
         self.lista_precio = []
+        self.es_alcista = False
 
 
     def buy(self):
@@ -38,6 +39,19 @@ class Cruce_hma():
                 return True
             else:
                 return False
+
+    def alcista_bajista(self):
+        #ALCISTA
+        if self.hma50 > self.hma80 and self.hma_80 > self.hma200:
+            if self.es_alcista != True:
+                self.es_alcista = True
+        #BAJISTA
+        elif self.hma80 > self.hma200 and self.hma50 > self.hma200:
+                if self.precio_actual < self.vela_anterior and self.dos_velas_antes < self.hma200:
+                    if self.es_alcista != False:
+                        self.es_alcista = False
+        return self.hma50, self.hma80, self.hma200, self.precio_actual
+
 
 
 
