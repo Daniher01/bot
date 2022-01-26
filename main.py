@@ -1,3 +1,4 @@
+import time
 from os import path, remove
 from datetime import datetime
 import os
@@ -333,8 +334,9 @@ class bot_tendencia():
             updater.bot.send_message(config.CHAT_ID, f'Corriendo bot...')
             print('listo para utilizar')
             while self.RUN == True:
-                if self.hour == 00 and self.minute == 00 and self.seconds == 00:
+                if self.hour == 23 and self.minute == 59:
                     self.start(updater)
+                time.sleep(60)
         except Exception as e:
             updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
             print('ERROR METODO RUN: ', e)
