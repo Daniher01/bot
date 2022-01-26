@@ -3,8 +3,6 @@ from os import path, remove
 from datetime import datetime
 import os
 import pandas as pd
-import telebot
-import telegram.error
 from telegram.ext import Updater, CommandHandler
 import conexion
 import config
