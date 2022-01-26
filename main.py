@@ -3,6 +3,8 @@ from os import path, remove
 from datetime import datetime
 import os
 import pandas as pd
+import telebot
+import telegram.error
 from telegram.ext import Updater, CommandHandler
 import conexion
 import config
@@ -321,7 +323,7 @@ class bot_tendencia():
                 if existe == True:
                     updater.bot.send_message(config.CHAT_ID, self.avisar(i))
             updater.bot.send_message(config.CHAT_ID, f'Verifique los valores de las Medias Moviles de Hull')
-
+            print(updater.message)
         except Exception as e:
             updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
             print('ERROR: ',e)
@@ -341,5 +343,7 @@ class bot_tendencia():
             updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
             print('ERROR METODO RUN: ', e)
 
+
 bot = bot_tendencia() #instancia el bot
 bot.run()
+
