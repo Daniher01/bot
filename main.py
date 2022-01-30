@@ -310,7 +310,7 @@ class bot_tendencia():
         self.mensaje = (f'{cripto} \n {aviso} \n {moneda_tiene}')
         return self.mensaje
 
-    def start(self, update):
+    def start(self):
         try:
             old, new = funciones.tiempo_server()
             self.tiempo()
@@ -321,7 +321,6 @@ class bot_tendencia():
                 if existe == True:
                     updater.bot.send_message(config.CHAT_ID, self.avisar(i))
             updater.bot.send_message(config.CHAT_ID, f'Verifique los valores de las Medias Moviles de Hull')
-            print(updater.message)
         except Exception as e:
             updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
             print('ERROR: ',e)
@@ -334,8 +333,8 @@ class bot_tendencia():
             updater.bot.send_message(config.CHAT_ID, f'Corriendo bot...')
             print('listo para utilizar')
             while self.RUN == True:
-                if self.hour == 23 and self.minute == 59:
-                    self.start(updater)
+                if self.hour == 00 and self.minute == 55:
+                    self.start()
                 time.sleep(60)
         except Exception as e:
             updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
