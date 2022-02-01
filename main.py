@@ -251,7 +251,7 @@ class CriptoBot():
 class bot_tendencia():
     def __init__(self):
         self.cliente = conexion.cliente
-        self.lista_cripto = ['BTCUSDT', 'DOTUSDT', 'LUNAUSDT', 'ROSEUSDT']
+        self.lista_cripto = ['BTCUSDT', 'DOTUSDT', 'LUNAUSDT', 'ROSEUSDT', 'GLMRUSDT', 'SHIBUSDT']
         self.time = '1d'
         self.limite = 200
         self.data_df = ''
@@ -310,7 +310,7 @@ class bot_tendencia():
         self.mensaje = (f'{cripto} \n {aviso} \n {moneda_tiene}')
         return self.mensaje
 
-    def start(self):
+    def start(self,update, context):
         try:
             old, new = funciones.tiempo_server()
             self.tiempo()
@@ -330,12 +330,15 @@ class bot_tendencia():
             updater = Updater(config.TOKEN, use_context=True)
             self.tiempo()
             updater.start_polling()
+            updater.dispatcher.add_handler(CommandHandler('start', self.start))
+            print('Conexion con Telegram Exitosa')
+            # start
+            updater.start_polling()
             updater.bot.send_message(config.CHAT_ID, f'Corriendo bot...')
             print('listo para utilizar')
-            while self.RUN == True:
-                if self.hour == 00 and self.minute == 55:
-                    self.start()
-                time.sleep(60)
+            # me quedo esperando
+            updater.idle()
+
         except Exception as e:
             updater.bot.send_message(config.CHAT_ID, f'ERROR: \n {e}')
             print('ERROR METODO RUN: ', e)
