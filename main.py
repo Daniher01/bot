@@ -10,7 +10,7 @@ import indicadores
 from estrategias import *
 import funciones
 import csv
-#import backtesting
+import backtesting
 
 class CriptoBot():
     def __init__(self):
@@ -344,6 +344,6 @@ class bot_tendencia():
             print('ERROR METODO RUN: ', e)
 
 
-bot = bot_tendencia() #instancia el bot
-bot.run()
+#bot = bot_tendencia() #instancia el bot
+#bot.run()
 

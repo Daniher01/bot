@@ -53,7 +53,19 @@ class Cruce_hma():
         return self.hma50, self.hma80, self.hma200, self.precio_actual
 
 
+class DCA():
+    def __init__(self, df):
+        self.df = df
+        self.precio_actual = float(self.df['close'][-1:])
+        self.ath = 0
+
+    def saberATH(self):
+        for precio in self.df['close']:
+            if precio > self.ath:
+                self.ath = precio
+        return self.ath
 
 
-
-
+"""d = funciones.datos_ticker('BTCUSDT', '1d', 200)
+dd = DCA(d)
+print(dd.saberATH())"""
