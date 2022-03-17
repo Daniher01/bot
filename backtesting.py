@@ -292,21 +292,48 @@ class Estrategia2_Acumular():
         return self.datadf, porcentaje
 
 
+class Estrategia_compraDIP():
+
+    def __init__(self,cripto, time, limite=False):
+        self.cripto = cripto
+        self.time = time
+        self.limite = limite
+        self.datadf = funciones.datos_ticker(cripto, time, limite)
+        self.ATH = 0
+        self.historial_ath = []
+
+    def ATH_bt(self):
+        for dia in range(len(self.datadf)):
+            precio_dia = float(self.datadf['close'][dia])
+            if precio_dia > self.ATH:
+                self.ATH = precio_dia
+                self.historial_ath.append(self.ATH)
+            else:
+                self.historial_ath.append(np.nan)
+        self.datadf['ATH'] = self.historial_ath
+        return self.datadf
+
+
+    def mostar_grafico(self):
+        self.ATH_bt()
+        plt.Figure(figsize=(10, 5))
+        plt.plot(self.datadf['close'], label=self.cripto)
+
+        plt.scatter(self.datadf.index, self.datadf['ATH'], label='ATH', marker='^', color='black')
+        #plt.scatter(self.datadf.index, self.datadf['venta'], label='Precio de venta', marker='v', color='red')
+        plt.xlabel('Enero 2021 - Diciembre 2021')
+        plt.ylabel('Precio cierra ($)')
+        plt.legend(loc='upper left')
+        plt.show()
+
+        return self.datadf
+
+
+d = Estrategia_compraDIP('BTCUSDT', '1d', 200)
+d.mostar_grafico()
 
 
 
-lista_cripto = ['BTCUSDT']
-lista = []
-for i in lista_cripto:
-    data = Estrategia2_Acumular(i, '1d', limite=600)
-    print('')
-    print(i)
-    datos, porcentaje = data.mostar_grafico()
-    lista.append(porcentaje)
-    print(len(data.op_compra))
-    #funciones.get_csv(datos, i, '1d')  # se genera el csv
-sum_portafolio = pd.DataFrame(lista)
-print('la G/p del portafolio es: ',sum_portafolio.sum())
 
 
 
