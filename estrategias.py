@@ -52,7 +52,9 @@ class Cruce_hma():
                         self.es_alcista = False
         return self.hma50, self.hma80, self.hma200, self.precio_actual
 
-
+"""---------------------------------------------------------------------------------------------------
+-----------------------------CLASE PARA ESTRATEGIA DE DCA--------------------------------------------
+-------------------------------------------------------------------------------------------------------"""
 class DCA():
     def __init__(self, df):
         self.df = df
@@ -63,7 +65,7 @@ class DCA():
         for precio in self.df['close']:
             if precio > self.ath:
                 self.ath = precio
-        return self.ath
+        return self.ath #RETORNA EL ATH EN MODO DE PRECIO
 
 
 """d = funciones.datos_ticker('BTCUSDT', '1d', 200)

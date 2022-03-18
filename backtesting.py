@@ -291,8 +291,10 @@ class Estrategia2_Acumular():
         porcentaje = self.datadf['%'].sum()
         return self.datadf, porcentaje
 
-
-class Estrategia_compraDIP():
+"""----------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------"""
+class Estrategia_compraDIP(): ##clase para la estrategia de bt
 
     def __init__(self,cripto, time, limite=False):
         self.cripto = cripto
@@ -300,8 +302,11 @@ class Estrategia_compraDIP():
         self.limite = limite
         self.datadf = funciones.datos_ticker(cripto, time, limite)
         self.ATH = 0
+        self.precioDIP = 0
         self.historial_ath = []
+        self.DIP20percent = []
 
+    #obtiene la ath de la cripto
     def ATH_bt(self):
         for dia in range(len(self.datadf)):
             precio_dia = float(self.datadf['close'][dia])
@@ -311,17 +316,44 @@ class Estrategia_compraDIP():
             else:
                 self.historial_ath.append(np.nan)
         self.datadf['ATH'] = self.historial_ath
-        return self.datadf
+        return self.datadf #retorna el dataframe con una columna de todos los ath en el periodo dado
 
+    #recibe el porcentaje en el que tiene que bajar el precio desde su ATH para hacer la compra
+    def detectarPorcentajedeBajada(self, porcentaje):
+        porcentaje = porcentaje/100
+        precioDIP =self.ATH - (self.ATH * porcentaje)
+        return  precioDIP
 
-    def mostar_grafico(self):
+    def comprarDIP(self):
         self.ATH_bt()
+        for dia in range(len(self.datadf)):
+            precio_dia = float(self.datadf['close'][dia])
+            #self.ATH = float(self.datadf['ATH'][dia])
+            self.precioDIP = self.detectarPorcentajedeBajada(20)
+            rango_diferancia = self.detectarPorcentajedeBajada( 21)
+            if precio_dia <= self.precioDIP and precio_dia >= rango_diferancia:
+                self.precioDIP = precio_dia
+                self.DIP20percent.append(self.precioDIP)
+            else:
+                self.DIP20percent.append(np.nan)
+            print('ATH ', self.ATH)
+            print('DIP ',self.precioDIP)
+            print('precio dia ', precio_dia)
+            print('DIFERENCIA ',rango_diferancia)
+        self.datadf['-20%'] = self.DIP20percent
+        print(self.datadf)
+        return self.datadf  # retorna el dataframe con una columna de todos los ath en el periodo dado
+
+
+ #muestra el grafico
+    def mostar_grafico(self):
+        self.comprarDIP()
         plt.Figure(figsize=(10, 5))
         plt.plot(self.datadf['close'], label=self.cripto)
 
         plt.scatter(self.datadf.index, self.datadf['ATH'], label='ATH', marker='^', color='black')
-        #plt.scatter(self.datadf.index, self.datadf['venta'], label='Precio de venta', marker='v', color='red')
-        plt.xlabel('Enero 2021 - Diciembre 2021')
+        plt.scatter(self.datadf.index, self.datadf['-20%'], label='-20%', marker='v', color='red')
+        plt.xlabel('FECHA')
         plt.ylabel('Precio cierra ($)')
         plt.legend(loc='upper left')
         plt.show()
@@ -331,7 +363,6 @@ class Estrategia_compraDIP():
 
 d = Estrategia_compraDIP('BTCUSDT', '1d', 200)
 d.mostar_grafico()
-
 
 
 
