@@ -1,3 +1,4 @@
+import numpy
 import pandas as pd
 import numpy as np
 import talib as ta
@@ -24,6 +25,10 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
         self.datadf = funciones.datos_ticker(cripto, time, limite)
         self.ATH = 0
         self.precioDIP = 0
+        self.btc_acumulado = 0
+        self.dolares = 10
+        self.liquidez_invertida = 0
+        self.promedio_compra = []
         self.historial_ath = []
         self.hayATH = []
         self.lista_porcentaje = [5,10,15,20,25,30,35,40,45,50]
@@ -64,13 +69,19 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
 
         return precioDIP, rango_diferencia
 
+    #permite saber cuanto btc se va acumulando con cada compra
+    def saber_btc_acumulado(self, precio_btc):
+        self.btc_acumulado += (self.dolares / precio_btc)
+        self.liquidez_invertida += self.dolares
+
+
 
     def comprarDIP(self):
 
         self.contador = 5
         for dia in range(len(self.datadf)):
             precio_dia = float(self.datadf['close'][dia])
-
+            self.sePuedeComprar = False
             """Se obtiene el ATH de la cripto"""
             if precio_dia > self.ATH:
                 self.ATH = precio_dia
@@ -87,6 +98,7 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
                 if precio_dia <= self.precioDIP and precio_dia >= rango_diferencia:
                     self.precioDIP = precio_dia
                     self.DIP5.append(self.precioDIP)
+                    self.sePuedeComprar = True
                 else:
                     self.DIP5.append(np.nan)
                 self.contador +=5
@@ -96,6 +108,7 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
                 if precio_dia <= self.precioDIP and precio_dia >= rango_diferencia:
                     self.precioDIP = precio_dia
                     self.DIP10.append(self.precioDIP)
+                    self.sePuedeComprar = True
                 else:
                     self.DIP10.append(np.nan)
                 self.contador +=5
@@ -105,6 +118,7 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
                 if precio_dia <= self.precioDIP and precio_dia >= rango_diferencia:
                     self.precioDIP = precio_dia
                     self.DIP15.append(self.precioDIP)
+                    self.sePuedeComprar = True
                 else:
                     self.DIP15.append(np.nan)
                 self.contador +=5
@@ -114,6 +128,7 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
                 if precio_dia <= self.precioDIP and precio_dia >= rango_diferencia:
                     self.precioDIP = precio_dia
                     self.DIP20.append(self.precioDIP)
+                    self.sePuedeComprar = True
                 else:
                     self.DIP20.append(np.nan)
                 self.contador +=5
@@ -123,6 +138,7 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
                 if precio_dia <= self.precioDIP and precio_dia >= rango_diferencia:
                     self.precioDIP = precio_dia
                     self.DIP25.append(self.precioDIP)
+                    self.sePuedeComprar = True
                 else:
                     self.DIP25.append(np.nan)
                 self.contador +=5
@@ -132,6 +148,7 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
                 if precio_dia <= self.precioDIP and precio_dia >= rango_diferencia:
                     self.precioDIP = precio_dia
                     self.DIP30.append(self.precioDIP)
+                    self.sePuedeComprar = True
                 else:
                     self.DIP30.append(np.nan)
                 self.contador +=5
@@ -141,6 +158,7 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
                 if precio_dia <= self.precioDIP and precio_dia >= rango_diferencia:
                     self.precioDIP = precio_dia
                     self.DIP35.append(self.precioDIP)
+                    self.sePuedeComprar = True
                 else:
                     self.DIP35.append(np.nan)
                 self.contador +=5
@@ -150,6 +168,7 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
                 if precio_dia <= self.precioDIP and precio_dia >= rango_diferencia:
                     self.precioDIP = precio_dia
                     self.DIP40.append(self.precioDIP)
+                    self.sePuedeComprar = True
                 else:
                     self.DIP40.append(np.nan)
                 self.contador +=5
@@ -159,6 +178,7 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
                 if precio_dia <= self.precioDIP and precio_dia >= rango_diferencia:
                     self.precioDIP = precio_dia
                     self.DIP45.append(self.precioDIP)
+                    self.sePuedeComprar = True
                 else:
                     self.DIP45.append(np.nan)
                 self.contador +=5
@@ -168,9 +188,16 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
                 if precio_dia <= self.precioDIP and precio_dia >= rango_diferencia:
                     self.precioDIP = precio_dia
                     self.DIP50.append(self.precioDIP)
+                    self.sePuedeComprar = True
                 else:
                     self.DIP50.append(np.nan)
             self.contador = 5
+
+            if self.sePuedeComprar == True:
+                self.saber_btc_acumulado(precio_dia)
+                self.promedio_compra.append(precio_dia)
+
+
 
         self.datadf['ATH'] = self.historial_ath
         self.datadf['-5%'] = self.DIP5
@@ -184,17 +211,45 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
         self.datadf['-45%'] = self.DIP45
         self.datadf['-50%'] = self.DIP50
 
+        promedio = numpy.mean(self.promedio_compra)
+        print(promedio)
+        lista = ['BTC acumulado: ',self.btc_acumulado, 'total invertido en $$: ',self.liquidez_invertida, 'Promedio de compra: ',promedio]
+        lista_df = pd.DataFrame(lista)
+        lista_df.to_csv('resumen comprar en el DIP.csv')
 
-
-        print(self.datadf)
         return self.datadf  # retorna el dataframe con una columna de todos los ath en el periodo dado
+
+
+    def compras_progresivas(self):
+        contador = 0
+        for dia in range(len(self.datadf)):
+            precio_dia = float(self.datadf['close'][dia])
+            contador += 1
+
+            if contador == 7:
+                contador = 0
+                self.saber_btc_acumulado(precio_dia)
+                self.promedio_compra.append(precio_dia)
+            else:
+                self.promedio_compra.append(np.nan)
+
+
+        promedio = numpy.mean(self.promedio_compra)
+
+        self.datadf['DCA'] = self.promedio_compra
+        lista = ['BTC acumulado: ', self.btc_acumulado, 'total invertido en $$: ', self.liquidez_invertida]
+        lista_df = pd.DataFrame(lista)
+        lista_df.to_csv('resumen compras progresivas.csv')
 
 
  #muestra el grafico
     def mostar_grafico(self):
         self.comprarDIP()
+        #self.compras_progresivas()
         plt.Figure(figsize=(10, 5))
         plt.plot(self.datadf['close'], label=self.cripto)
+
+        #plt.scatter(self.datadf.index, self.datadf['DCA'], label='DCA', marker='o', color='black')
 
         plt.scatter(self.datadf.index, self.datadf['ATH'], label='ATH', marker='o', color='black')
         plt.scatter(self.datadf.index, self.datadf['-5%'], label='-5%', marker='v', color='red')
@@ -215,9 +270,10 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
         return self.datadf
 
 
-d = Estrategia_compraDIP('BTCUSDT', '1d', 150)
+d = Estrategia_compraDIP('BTCUSDT', '1d', 365)
 d.mostar_grafico()
-
+#d.comprarDIP()
+#d.compras_progresivas()
 
 
 
