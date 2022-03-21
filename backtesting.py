@@ -39,7 +39,7 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
         self.DIP45 = []
         self.DIP50 = []
 
-
+    """
     #obtiene la ath de la cripto
     def ATH_bt(self):
         for dia in range(len(self.datadf)):
@@ -53,6 +53,7 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
                 self.hayATH.append(False)
         self.datadf['ATH'] = self.historial_ath
         return self.datadf #retorna el dataframe con una columna de todos los ath en el periodo dado
+        """
 
     #recibe el porcentaje en el que tiene que bajar el precio desde su ATH para hacer la compra
     def detectarPorcentajedeBajada(self, porcentaje):
@@ -65,11 +66,12 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
 
 
     def comprarDIP(self):
-        #self.ATH_bt()
+
         self.contador = 5
         for dia in range(len(self.datadf)):
             precio_dia = float(self.datadf['close'][dia])
 
+            """Se obtiene el ATH de la cripto"""
             if precio_dia > self.ATH:
                 self.ATH = precio_dia
                 self.historial_ath.append(self.ATH)
@@ -77,8 +79,8 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
             else:
                 self.historial_ath.append(np.nan)
                 self.hayATH.append(False)
-
-
+            """------------------------------------"""
+            """guarda el precio segun le porcentaje que baje desde el ATH"""
             if self.contador == 5:
                 self.precioDIP, rango_diferencia = self.detectarPorcentajedeBajada(self.contador)
 
