@@ -31,34 +31,15 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
         self.promedio_compra = []
         self.historial_ath = []
         self.hayATH = []
-        self.lista_porcentaje = [5,10,15,20,25,30,35,40,45,50]
+        self.lista_porcentaje = [10,20,30,40,50]
         self.DIP5 = []
         self.DIP10 = []
-        self.DIP15 = []
         self.DIP20 = []
-        self.DIP25 = []
-        self.DIP35 = []
         self.DIP30 = []
-        self.DIP35 = []
         self.DIP40 = []
-        self.DIP45 = []
         self.DIP50 = []
 
-    """
-    #obtiene la ath de la cripto
-    def ATH_bt(self):
-        for dia in range(len(self.datadf)):
-            precio_dia = float(self.datadf['close'][dia])
-            if precio_dia > self.ATH:
-                self.ATH = precio_dia
-                self.historial_ath.append(self.ATH)
-                self.hayATH.append(True)
-            else:
-                self.historial_ath.append(np.nan)
-                self.hayATH.append(False)
-        self.datadf['ATH'] = self.historial_ath
-        return self.datadf #retorna el dataframe con una columna de todos los ath en el periodo dado
-        """
+
 
     #recibe el porcentaje en el que tiene que bajar el precio desde su ATH para hacer la compra
     def detectarPorcentajedeBajada(self, porcentaje):
@@ -144,6 +125,9 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
                     self.DIP50.append(np.nan)
             self.contador = 10
 
+
+            self.contador = 10
+
             if self.sePuedeComprar == True:
                 self.saber_btc_acumulado(precio_dia)
                 self.promedio_compra.append(precio_dia)
@@ -155,14 +139,11 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
         self.datadf['ATH'] = self.historial_ath
 
         self.datadf['-10%'] = self.DIP10
-
         self.datadf['-20%'] = self.DIP20
-
         self.datadf['-30%'] = self.DIP30
-
         self.datadf['-40%'] = self.DIP40
-
         self.datadf['-50%'] = self.DIP50
+
 
         promedio = numpy.mean(self.promedio_compra)
         print(promedio)
@@ -206,15 +187,13 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
 
         plt.scatter(self.datadf.index, self.datadf['ATH'], label='ATH', marker='o', color='black')
 
-        plt.scatter(self.datadf.index, self.datadf['-10%'], label='-10%', marker='v', color='purple')
+        plt.scatter(self.datadf.index, self.datadf['-10%'], label='-10%', marker='v', color='red')
+        plt.scatter(self.datadf.index, self.datadf['-20%'], label='-20%', marker='v', color='blue')
+        plt.scatter(self.datadf.index, self.datadf['-30%'], label='-30%', marker='v', color='yellow')
+        plt.scatter(self.datadf.index, self.datadf['-40%'], label='-40%', marker='v', color='purple')
+        plt.scatter(self.datadf.index, self.datadf['-50%'], label='-50%', marker='v', color='orange')
 
-        plt.scatter(self.datadf.index, self.datadf['-20%'], label='-20%', marker='v', color='green')
 
-        plt.scatter(self.datadf.index, self.datadf['-30%'], label='-30%', marker='v', color='orange')
-
-        plt.scatter(self.datadf.index, self.datadf['-40%'], label='-40%', marker='v', color='maroon')
-
-        plt.scatter(self.datadf.index, self.datadf['-50%'], label='-50%', marker='v', color='brown')
         plt.xlabel('FECHA')
         plt.ylabel('Precio cierra ($)')
         plt.legend(loc='upper left')
