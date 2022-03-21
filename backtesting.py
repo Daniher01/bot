@@ -65,10 +65,19 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
 
 
     def comprarDIP(self):
-        self.ATH_bt()
+        #self.ATH_bt()
         self.contador = 5
         for dia in range(len(self.datadf)):
             precio_dia = float(self.datadf['close'][dia])
+
+            if precio_dia > self.ATH:
+                self.ATH = precio_dia
+                self.historial_ath.append(self.ATH)
+                self.hayATH.append(True)
+            else:
+                self.historial_ath.append(np.nan)
+                self.hayATH.append(False)
+
 
             if self.contador == 5:
                 self.precioDIP, rango_diferencia = self.detectarPorcentajedeBajada(self.contador)
@@ -161,7 +170,7 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
                     self.DIP50.append(np.nan)
             self.contador = 5
 
-
+        self.datadf['ATH'] = self.historial_ath
         self.datadf['-5%'] = self.DIP5
         self.datadf['-10%'] = self.DIP10
         self.datadf['-15%'] = self.DIP15
@@ -204,9 +213,9 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
         return self.datadf
 
 
-d = Estrategia_compraDIP('BTCUSDT', '1d', 200)
+d = Estrategia_compraDIP('BTCUSDT', '1d', 150)
 d.mostar_grafico()
-#d.comprarDIP()
+
 
 
 
