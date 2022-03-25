@@ -1,10 +1,7 @@
 import numpy
 import pandas as pd
 import numpy as np
-import talib as ta
 
-import estrategias
-import indicadores
 import funciones
 import matplotlib.pyplot as plt
 
@@ -28,7 +25,9 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
         self.btc_acumulado = 0
         self.dolares = 60
         self.liquidez_invertida = 0
-        self.promedio_compra = []
+        self.precio_bajada = 0
+        self.lista_precioCompra = []
+        self.preciosDIP = []
         self.historial_ath = []
         self.hayATH = []
         self.lista_porcentaje = [10,20,30,40,50]
@@ -48,7 +47,7 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
         precioDIP =self.ATH - (self.ATH * porcentaje)
         rango_diferencia = self.ATH - (self.ATH * porcentaje_diferencia)
 
-        return precioDIP, rango_diferencia
+        return precioDIP
 
     #permite saber cuanto btc se va acumulando con cada compra
     def saber_btc_acumulado(self, precio_btc):
@@ -58,23 +57,55 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
 
 
     def comprarDIP(self):
-
+        self.preciosDIP = []
 
         for dia in range(len(self.datadf)):
             precio_dia = float(self.datadf['close'][dia])
+
+
             self.sePuedeComprar = False
             """Se obtiene el ATH de la cripto"""
             if precio_dia > self.ATH:
                 self.ATH = precio_dia
                 self.historial_ath.append(self.ATH)
                 self.hayATH.append(True)
-                self.contador = 10
+                lista = [5,10,15,20,25,30,35,40,45,50]
+                self.lista_precioDip = []
+
+
+                print('ATH: ', self.ATH)
+                for dip in lista:
+                    self.precioDIP = self.detectarPorcentajedeBajada(dip)
+                    self.lista_precioDip.append(self.precioDIP)
+
             else:
                 self.historial_ath.append(np.nan)
                 self.hayATH.append(False)
-            """------------------------------------"""
-            """guarda el precio segun el porcentaje que baje desde el ATH"""
-            if self.contador == 10:
+
+
+            print(self.lista_precioDip)
+
+            for precioDIP in reversed(self.lista_precioDip):
+                rango_diferencia = precioDIP - (precioDIP*0.01)
+                if precio_dia <= precioDIP and precio_dia >= rango_diferencia:
+                    self.lista_precioCompra.append(precio_dia)
+                    #self.lista_precioDip.remove(precioDIP)
+
+
+
+            if len(self.lista_precioCompra) > 0:
+                for i in self.lista_precioCompra:
+                    if i > 1:
+                        self.preciosDIP.append(i)
+                    else:
+                        self.preciosDIP.append(np.nan)
+            else:
+                self.preciosDIP.append(np.nan)
+
+            self.lista_precioCompra = []
+
+
+            """if self.contador == 10:
                 self.precioDIP, rango_diferencia = self.detectarPorcentajedeBajada(self.contador)
                 if precio_dia <= self.precioDIP and precio_dia >= rango_diferencia:
                     self.precioDIP = precio_dia
@@ -151,8 +182,11 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
         print(promedio)
         lista = ['BTC acumulado: ',self.btc_acumulado, 'total invertido en $$: ',self.liquidez_invertida, 'Promedio de compra: ',promedio]
         lista_df = pd.DataFrame(lista)
-        lista_df.to_csv('resumen comprar en el DIP.csv')
-
+        lista_df.to_csv('resumen comprar en el DIP.csv')"""
+        self.datadf['ATH'] = self.historial_ath
+        print(len(self.preciosDIP))
+        self.datadf['-%'] = self.preciosDIP
+        #print(self.datadf)
         return self.datadf  # retorna el dataframe con una columna de todos los ath en el periodo dado
 
 
@@ -188,12 +222,13 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
         #plt.scatter(self.datadf.index, self.datadf['DCA'], label='DCA', marker='o', color='black')
 
         plt.scatter(self.datadf.index, self.datadf['ATH'], label='ATH', marker='o', color='black')
+        plt.scatter(self.datadf.index, self.datadf['-%'], label='-%', marker='v', color='red')
 
-        plt.scatter(self.datadf.index, self.datadf['-10%'], label='-10%', marker='v', color='red')
+        """plt.scatter(self.datadf.index, self.datadf['-10%'], label='-10%', marker='v', color='red')
         plt.scatter(self.datadf.index, self.datadf['-20%'], label='-20%', marker='v', color='blue')
         plt.scatter(self.datadf.index, self.datadf['-30%'], label='-30%', marker='v', color='brown')
         plt.scatter(self.datadf.index, self.datadf['-40%'], label='-40%', marker='v', color='purple')
-        plt.scatter(self.datadf.index, self.datadf['-50%'], label='-50%', marker='v', color='orange')
+        plt.scatter(self.datadf.index, self.datadf['-50%'], label='-50%', marker='v', color='orange')"""
 
 
         plt.xlabel('FECHA')
