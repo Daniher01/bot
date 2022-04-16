@@ -44,12 +44,21 @@ class criptoClass():
 
         cur.close()
 
-    def agregarCripto(self, ath):
+
+    def agregarCripto(self):
         cur = self.bd.cursor()
-        query = "INSERT INTO cripto (criptoactivo, ath) VALUES(%s, %s)"
-        datos = (self.cripto, ath)
-        cur.execute(query, datos)
+        query = "INSERT INTO cripto (criptoactivo) VALUES('%s')" %self.cripto
+        datos = (self.cripto)
+        cur.execute(query)
         self.bd.commit()
 
-c = criptoClass('BTCUSDT')
-c.agregarCripto(69000)
+    def actualizarCripto(self, ath):
+        cur = self.bd.cursor()
+        query = "UPDATE cripto SET ath = %s WHERE criptoactivo=%s"
+        datos = (ath, self.cripto)
+        cur.execute(query, datos)
+
+        self.bd.commit()
+
+#c = criptoClass('BTCUSDT')
+#c.actualizarCripto(100000)
