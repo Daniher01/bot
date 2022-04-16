@@ -60,5 +60,6 @@ class criptoClass():
 
         self.bd.commit()
 
+
 #c = criptoClass('BTCUSDT')
 #c.actualizarCripto(100000)
