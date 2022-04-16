@@ -1,14 +1,13 @@
 import numpy
 import pandas as pd
 import numpy as np
-
+from conexion import bdConnect
 import funciones
 import matplotlib.pyplot as plt
 
 """
 Clase para realizar los backtesting manualmente
 """
-
 
 """----------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------
@@ -85,10 +84,13 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
 
             print(self.lista_precioDip)
 
-            for precioDIP in reversed(self.lista_precioDip):
+            for precioDIP in self.lista_precioDip:
+                print(self.lista_precioDip[-1])
                 rango_diferencia = precioDIP - (precioDIP*0.01)
                 if precio_dia <= precioDIP and precio_dia >= rango_diferencia:
                     self.lista_precioCompra.append(precio_dia)
+                    if precioDIP == self.lista_precioDip[-1]:
+                        print('HOLA')
                     #self.lista_precioDip.remove(precioDIP)
 
 

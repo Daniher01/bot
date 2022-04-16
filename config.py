@@ -9,3 +9,13 @@ conenctarse a la api de telegram
 """
 TOKEN = "5104192503:AAE-6TtuswXnlWa97gd2GxwBE2WCCekrcOQ"
 CHAT_ID = "929430484"
+
+"""
+Conectarse a la BD de postgresql
+"""
+
+HOST = 'localhost'
+DBNAME = 'Bot'
+USER = 'postgres'
+PASSWORD = ''
+PORT = 5432

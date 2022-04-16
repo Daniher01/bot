@@ -1,6 +1,6 @@
 import csv
 from datetime import datetime
-from conexion import cliente
+from conexion import binanceConnect
 import pandas as pd
 
 """
@@ -8,7 +8,7 @@ Se tienen funciones respecto
 a informacion de binance y 
 la cuenta propia de binance
 """
-
+cliente = binanceConnect()
 
 # Devuelve la primera fecha (1 Jan 2017) y la fecha actual del servidor
 def tiempo_server():

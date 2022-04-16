@@ -1,4 +1,4 @@
-from indicadores import *
+#from indicadores import *
 import funciones
 
 class Cruce_hma():

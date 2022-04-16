@@ -6,11 +6,15 @@ import pandas as pd
 from telegram.ext import Updater, CommandHandler
 import conexion
 import config
-import indicadores
+
 from estrategias import *
 import funciones
 import csv
-import backtesting
+#import backtesting
+import criptoClass
+
+
+
 
 class CriptoBot():
     def __init__(self):
