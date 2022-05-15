@@ -5,12 +5,12 @@ from conexion import bdConnect
 class criptoClass():
 
 
-    def __init__(self, cripto):
+    def __init__(self, idcripto):
         self.idcripto = ''
         self.criptoactivo = ''
         self.ath = ''
         self.bd = bdConnect()
-        self.cripto = cripto
+        self.cripto = idcripto
 
     #Getters (metodos GET)
 
@@ -35,16 +35,23 @@ class criptoClass():
         self.ath = ath
 
 
-    #metodos propios de la clase
+    """
+    metodos propios de la clase
+    """
+
+    #trae todos los datos de esa cripto
     def buscarCripto(self):
         cur = self.bd.cursor()
         query = "SELECT * FROM cripto WHERE criptoactivo = '%s'" %self.cripto
         cur.execute(query)
-        print(cur.fetchall())
-
+        data = cur.fetchall()
+        for d in data:
+            self.set_Id(d[0])
+            self.set_Criptoactivo(d[1])
+            self.set_Ath(d[2])
         cur.close()
 
-
+    #permite agregar una cripto
     def agregarCripto(self):
         cur = self.bd.cursor()
         query = "INSERT INTO cripto (criptoactivo) VALUES('%s')" %self.cripto
@@ -52,14 +59,14 @@ class criptoClass():
         cur.execute(query)
         self.bd.commit()
 
+    #actualiza el ath de la cripto
     def actualizarCripto(self, ath):
         cur = self.bd.cursor()
         query = "UPDATE cripto SET ath = %s WHERE criptoactivo=%s"
         datos = (ath, self.cripto)
         cur.execute(query, datos)
-
         self.bd.commit()
 
 
 #c = criptoClass('BTCUSDT')
-#c.actualizarCripto(100000)
+#c.buscarCripto()
