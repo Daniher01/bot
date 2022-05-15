@@ -64,7 +64,7 @@ class Estrategia_compraDIP(): ##clase para la estrategia de bt
 
             self.sePuedeComprar = False
             """Se obtiene el ATH de la cripto"""
-            if precio_dia > self.ATH:
+            if precio_dia > self.ATH: #cambiar ath por el precio dia
                 self.ATH = precio_dia
                 self.historial_ath.append(self.ATH)
                 self.hayATH.append(True)

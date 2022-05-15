@@ -154,3 +154,27 @@ def cantidad_min_max(simbolo):
         return cant_min, cant_max, min_notional
     else:
         print('No existe ese par')
+
+def  ejecutarOrden(simbolo, BuySell, cantidad,precio):
+    try:
+       orden =  cliente.create_order(
+            symbol=simbolo,
+            side=BuySell,
+            type='LIMIT',
+            timeInForce='GTC',
+            quantity=cantidad,
+            price=precio
+        )
+       idOrden =  orden.get('orderId')
+       status = orden.get('status')
+       print('Se ejecuto la orden')
+       return idOrden, status
+
+    except Exception as e:
+        print('ERROR: ',e)
+        return None, None
+
+def cancelarOrden(simbolo, id):
+    orden = cliente.cancel_order(symbol=simbolo, orderId=id)
+    print('Se cancelo la orden')
+    return orden
