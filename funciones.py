@@ -30,7 +30,7 @@ def mostrar_precios():
     for ticker in lista_tickers:
         symbol = ticker['symbol']
         price = ticker['price']
-        print("SIMBOLO: " + symbol + " PRECIO: " + price)
+        print("function::mostrar_precio -> SIMBOLO: " + symbol + " PRECIO: " + price)
 
 # permite sabes si existe o no el par
 def existe_par(simbolo):
@@ -45,11 +45,11 @@ def existe_par(simbolo):
             existe = False
             # FALSE si no existe el par
     if existe == False:
-        print('No existe ese Par')
+        print('function::existe_par -> No existe ese Par')
     return existe
 
 
-# muestra todos los datos desde cierta feche, ordenadamente
+# muestra todos los datos desde cierta fecha, ordenadamente
 def datos_ticker(simbolo, temporalidad,limite=False):
     try:
         existe = existe_par(simbolo)
@@ -115,7 +115,7 @@ def get_csv(data, simbolo, temporalidad, save=True, star_data=False):
             filename = '%s-%s-data.csv' % (simbolo, temporalidad)
         else:
             filename = '%s-%s-data-%s.csv' % (simbolo, temporalidad, star_data)
-        print('Descargando todos los datos %s de %s...' % (temporalidad, simbolo))
+        print('function:get_csv -> Descargando todos los datos %s de %s...' % (temporalidad, simbolo))
         if save:
             data.to_csv(filename)
             print('Datos cargados...')
@@ -147,7 +147,7 @@ def cantidad_min_max(simbolo):
         cant_min = float(info['filters'][2].get('minQty'))
         cant_max = float(info['filters'][2].get('maxQty'))
         min_notional = float(info['filters'][3].get('minNotional'))
-        print('Par: ' + simbolo)
+        print('function::cantidad_min_max -> Par: ' + simbolo)
         print('Cantidad minima a comprar: ', cant_min)
         print('Cantidad maxima a comprar: ', cant_max)
         print('Cantidad minima a comprar en $: ', min_notional)
@@ -167,7 +167,7 @@ def  ejecutarOrden(simbolo, BuySell, cantidad,precio):
         )
        idOrden =  orden.get('orderId')
        status = orden.get('status')
-       print('Se ejecuto la orden')
+       print('function::ejecutaOrden -> Se ejecuto la orden')
        return idOrden, status
 
     except Exception as e:
@@ -176,5 +176,5 @@ def  ejecutarOrden(simbolo, BuySell, cantidad,precio):
 
 def cancelarOrden(simbolo, id):
     orden = cliente.cancel_order(symbol=simbolo, orderId=id)
-    print('Se cancelo la orden')
+    print('function::cancelarOrden -> Se cancelo la orden')
     return orden
