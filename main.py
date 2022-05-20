@@ -5,11 +5,9 @@ import os
 import pandas as pd
 from telegram.ext import Updater, CommandHandler
 import conexion
-import config
 from conexion import binanceConnect
-from estrategias import *
 import funciones
-import csv
+from ordenClass import *
 #import backtesting
 #import criptoClass
 
@@ -19,9 +17,12 @@ import csv
 class CriptoBot():
     def __init__(self):
         self.cliente = binanceConnect
-        self.simbolo = 'BTCUSDT'
+        self.simbolo = 'BTCBUSD'
         self.time = '1d'
         self.RUN = True
+        self.datosTicker = funciones.datos_ticker(self.simbolo, self.time, 2)
+        self.precio_actual = self.datosTicker['close'][1]
+        self.ordenClass = ordenClass(self.simbolo)
         self.ath_temporal = 0 #guardar el precio al momento de hacer la compra
         self.descripcion = 'Registro_compra' #descripcion para el nombre del csv
         self.csv_cripto = 'Lista_criptos.csv' #nombre del CSV donde esta la lista de las criptos
@@ -52,16 +53,30 @@ class CriptoBot():
 
     def hayNuevoATH(self):
         print('function::hayNuevoATH')
-        datos = funciones.datos_ticker(self.simbolo, self.time, 2)
-        precio_ayer = datos['close'][0]
-        precio_actual = datos['close'][1]
-        self.ath_temporal = precio_ayer
-        if precio_actual >= precio_ayer:
-            self.ath_temporal = precio_actual
-            return True #hay nuevo ath temporal
+        #datos = funciones.datos_ticker(self.simbolo, self.time, 2)
+        precio_ayer = self.datosTicker['close'][0]
+        self. precio_actual = self.datosTicker['close'][1]
+        if self.ath_temporal == 0:
+            self.ath_temporal = precio_ayer
+        if self.precio_actual >= self.ath_temporal:
+            self.ath_temporal = self.precio_actual
+            datareturn = True #hay nuevo ath temporal
         else:
-            return False #no hay nuevo ath temporal
+            datareturn = False #no hay nuevo ath temporal
+        print('ath temporal: ',self.ath_temporal)
+        print('precio actual: ', self.precio_actual)
+        return datareturn
 
+    """convierte la cantidad de USD a BTC"""
+    def convertirCantidad(self, fiat):
+        cantidad_en_btc = fiat / self.precio_actual
+        cantidad_en_btc = round(cantidad_en_btc, 3)
+        print(cantidad_en_btc)
+        return cantidad_en_btc
+
+    """retorna el porcentaje de el monto ingresado"""
+    def definirPorcentaje(self,monto, porcentaje):
+        return monto * porcentaje
 
 
     def estrategia(self):
@@ -73,21 +88,32 @@ class CriptoBot():
                 --toma ganancias (definir que porcentaje de ganancia) """
             print('se cancelan las ordenes pendientes y se toman ganancias')
         else:
-            moneda, liquidez, bloqueado = self.buscar_moneda('USDT')
+            moneda, liquidez, bloqueado = self.buscar_moneda('BUSD')
             cantidad_min, cantidad_max, cantidad_min_dolar =  funciones.cantidad_min_max(self.simbolo)
             if bloqueado == 0: #si no tengo ordenes pendientes
                 #SABER SI TENGO BALANCE POSITIVO PARA HACER COMPRA
                 if liquidez > cantidad_min_dolar:
-                    print('tienes para comprar')
-                    """crea ordenes de compra a porcentajes menores del ath temporal
-                            saber que porcentaje colocar en cada compra segun la liquidez"""
-                    funciones.ejecutarOrden(self.simbolo, 'BUY', 11, self.ath_temporal - 15000)
+                    porcentaje_liquidez1 = self.definirPorcentaje(liquidez, 0.25)
+                    porcentaje_liquidez2 = self.definirPorcentaje(liquidez, 0.5)
+                    if porcentaje_liquidez1 > cantidad_min_dolar: # si el porcentaje del portafolio se puede ejecutar la compra
+                        print(f'tienes para comprar con el {0.25*100}% del portafolio: {liquidez} ')
+                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(porcentaje_liquidez1), '15000')
+                        self.ordenClass.insertarOrden(idorden, porcentaje_liquidez1, self.precio_actual, 'BUY', datetime.today(), status)
+                    elif porcentaje_liquidez2 > cantidad_min_dolar: # si el porcentaje del portafolio se puede ejecutar la compra
+                        print(f'tienes para comprar con el {0.5*100}% del portafolio: {liquidez} ')
+                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(porcentaje_liquidez2), '15000')
+                        self.ordenClass.insertarOrden(idorden, porcentaje_liquidez2, self.precio_actual, 'BUY', datetime.today(), status)
+                    else: #el porcentaje del portafolio no llega al minimo para la compra
+                        print(f'tienes para comprar con el {100}$ del portafolio: {liquidez}')
+                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(liquidez), '15000')
+                        self.ordenClass.insertarOrden(idorden, liquidez, self.precio_actual, 'BUY',datetime.today(), status)
                 else:
                     print('no tienes para comprar')
                     """no hacer nada"""
             else:
                 """no hacer nada"""
                 print('ya tienes ordenes pendientes')
+
 
 
     def tiempo(self):
@@ -101,3 +127,4 @@ class CriptoBot():
 
 d = CriptoBot()
 d.estrategia()
+

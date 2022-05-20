@@ -158,16 +158,17 @@ def cantidad_min_max(simbolo):
 def  ejecutarOrden(simbolo, BuySell, cantidad,precio):
     try:
        orden =  cliente.create_order(
-            symbol=simbolo,
-            side=BuySell,
-            type='LIMIT',
+            symbol=simbolo, #para a comprar
+            side=BuySell, #orden de compra o venta
+            type='LIMIT', #tipo de orden
             timeInForce='GTC',
-            quantity=cantidad,
-            price=precio
+            quantity=cantidad, #cantidad en $$
+            price=precio #precio para la orden
         )
        idOrden =  orden.get('orderId')
        status = orden.get('status')
        print('function::ejecutaOrden -> Se ejecuto la orden')
+       print('function::ejecutaOrden -> ID: ', idOrden,' status: ', status)
        return idOrden, status
 
     except Exception as e:

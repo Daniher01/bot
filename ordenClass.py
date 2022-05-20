@@ -2,7 +2,7 @@ from conexion import bdConnect
 
 class ordenClass():
 
-    def __init__(self, idcripto):
+    def __init__(self, simbolo):
         self.bd = bdConnect()
         self.idOrden = ''
         self.monto = ''
@@ -10,7 +10,7 @@ class ordenClass():
         self.tipo_orden = ''
         self.fecha = ''
         self.status = ''
-        self.idcripto = idcripto
+        self.simbolo = simbolo
 
     # Getters (metodos GET)
 
@@ -56,8 +56,8 @@ class ordenClass():
     def set_status(self, status):
         self.status = status
 
-    def set_idCripto(self,idCripto):
-        self.idcripto = idCripto
+    def set_simbolo(self,simbolo):
+        self.simbolo = simbolo
 
 
 
@@ -65,28 +65,26 @@ class ordenClass():
     metodos propios de la clase
     """
 
-    def buscarOrdenes_cripto_fecha(self, fecha):
+    def buscarOrdenes_cripto_status(self, fecha):
         cur = self.bd.cursor()
         query = "SELECT * FROM orden " \
-                "INNER JOIN cripto on cripto.idcripto = orden.cripto_idcripto" \
-                "WHERE cripto_idcripto = '%s' AND fecha = '%s'" %self.idcripto %fecha
+                "WHERE status = '%s'" %(fecha)
         cur.execute(query)
         data = cur.fetchall()
         cur.close()
 
-    def insertarOrden(self, monto, precio, tipo_orden, fecha, status):
+    def insertarOrden(self, idorden, monto, precio, tipo_orden, fecha, status):
         cur = self.bd.cursor()
-        query = "INSERT INTO orden (monto, precio, tipo_orden, fecha, status) " \
-                "VALUES('%s','%s','%s','%s','%s')"
-        datos = (monto, precio, tipo_orden, fecha, status)
+        query = "INSERT INTO orden (idorden, monto, precio, tipo_orden, fecha, status, simbolo) " \
+                "VALUES('%s','%s','%s','%s','%s','%s','%s')" %(idorden, monto, precio, tipo_orden, fecha, status ,self.simbolo)
+
         cur.execute(query)
         self.bd.commit()
 
     def updateOrden(self, status, id):
         cur = self.bd.cursor()
-        query = "UPDATE orden SET status = %s WHERE idorden=%s"
-        datos = (status, id)
-        cur.execute(query, datos)
+        query = "UPDATE orden SET status = %s WHERE idorden=%s" %(status ,id)
+        cur.execute(query)
         self.bd.commit()
 
 
