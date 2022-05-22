@@ -152,4 +152,4 @@ class CriptoBot():
         self.hour = datetime.utcfromtimestamp(ts / 1000).hour
         pass
 
-#d = CriptoBot()
+d = CriptoBot()
