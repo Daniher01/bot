@@ -27,6 +27,7 @@ class CriptoBot():
         self.descripcion = 'Registro_compra' #descripcion para el nombre del csv
         self.csv_cripto = 'Lista_criptos.csv' #nombre del CSV donde esta la lista de las criptos
         """Se le asigna el tiempo del servidor"""
+        self.fechaActual = datetime.now().strftime('%Y-%m-%d')
         self.seconds = 0
         self.minute = 0
         self.hour = 0
@@ -78,33 +79,49 @@ class CriptoBot():
     def definirPorcentaje(self,monto, porcentaje):
         return monto * porcentaje
 
+    """define el porcentaje por debajo del precio actual para ejecutar la orden de compra"""
+    def definirPrecioCompra(self, porcentaje):
+        precio_btc = self.precio_actual * porcentaje
+        return precio_btc
+
 
     def estrategia(self):
         print('function::estrategia')
         """elegir estrategia"""
+        cantidad_min, cantidad_max, cantidad_min_dolar = funciones.cantidad_min_max(self.simbolo)
         #SABER EL PRECIO ACTUAL EN RELACION CON EL CIERRE DEL DIA ANTERIOR
         if self.hayNuevoATH():
-            """ --cancela las ordenes de compra pendientes
-                --toma ganancias (definir que porcentaje de ganancia) """
+            moneda, liquidez, bloqueado = self.buscar_moneda('BTC')
+            porcentaje_btc = round(self.definirPorcentaje(liquidez, 0.25),5)
             print('se cancelan las ordenes pendientes y se toman ganancias')
-        else:
+            if porcentaje_btc > cantidad_min:
+                print(f'tienes para comprar con el {0.25 * 100}% del portafolio, portafolio total:  {liquidez} ')
+                idorden, status = funciones.ejecutarOrden(self.simbolo, 'SELL',porcentaje_btc,self.precio_actual)
+                #idorden = None
+                print(porcentaje_btc)
+                if idorden != None:
+                    self.ordenClass.insertarOrden(idorden, porcentaje_btc, self.precio_actual, 'SELL', datetime.today(), status)
+
+        else: #-------------------------------------------CASO PARA EJECUTAR ORDENES DE COMPRA-------------------------------------------------
             moneda, liquidez, bloqueado = self.buscar_moneda('BUSD')
-            cantidad_min, cantidad_max, cantidad_min_dolar =  funciones.cantidad_min_max(self.simbolo)
             if bloqueado == 0: #si no tengo ordenes pendientes
                 #SABER SI TENGO BALANCE POSITIVO PARA HACER COMPRA
                 if liquidez > cantidad_min_dolar:
+                    #COMPRAR CON PORCENTAJES DEL PORTAFOLIO
                     porcentaje_liquidez1 = self.definirPorcentaje(liquidez, 0.25)
-                    porcentaje_liquidez2 = self.definirPorcentaje(liquidez, 0.5)
+                    porcentaje_liquidez2 = self.definirPorcentaje(liquidez, 0.25)
                     if porcentaje_liquidez1 > cantidad_min_dolar: # si el porcentaje del portafolio se puede ejecutar la compra
-                        print(f'tienes para comprar con el {0.25*100}% del portafolio: {liquidez} ')
-                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(porcentaje_liquidez1), '15000')
-                        self.ordenClass.insertarOrden(idorden, porcentaje_liquidez1, self.precio_actual, 'BUY', datetime.today(), status)
+                        print(f'tienes para comprar con el {0.25*100}% del portafolio, portafolio total:  {liquidez} ')
+                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(porcentaje_liquidez1), self.definirPrecioCompra(0.05))
+                        if idorden != None:
+                            self.ordenClass.insertarOrden(idorden, porcentaje_liquidez1, self.precio_actual, 'BUY', datetime.today(), status)
                     elif porcentaje_liquidez2 > cantidad_min_dolar: # si el porcentaje del portafolio se puede ejecutar la compra
                         print(f'tienes para comprar con el {0.5*100}% del portafolio: {liquidez} ')
-                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(porcentaje_liquidez2), '15000')
-                        self.ordenClass.insertarOrden(idorden, porcentaje_liquidez2, self.precio_actual, 'BUY', datetime.today(), status)
+                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(porcentaje_liquidez2), self.definirPrecioCompra(0.10))
+                        if idorden != None:
+                            self.ordenClass.insertarOrden(idorden, porcentaje_liquidez2, self.precio_actual, 'BUY', self.fechaActual, status)
                     else: #el porcentaje del portafolio no llega al minimo para la compra
-                        print(f'tienes para comprar con el {100}$ del portafolio: {liquidez}')
+                        print(f'tienes para comprar solo con el {100}% del portafolio: {liquidez}')
                         idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(liquidez), '15000')
                         self.ordenClass.insertarOrden(idorden, liquidez, self.precio_actual, 'BUY',datetime.today(), status)
                 else:
@@ -113,6 +130,16 @@ class CriptoBot():
             else:
                 """no hacer nada"""
                 print('ya tienes ordenes pendientes')
+
+    """FUNCION QUE SE VA MANTENER EJECUTANDO"""
+    def run(self):
+        ''
+        """
+        -- asignar hora del servidor
+        -- ejecutar funcion estrategia solo cuando sea 00:05 hora del servidor (tal vez)
+        -- imprimir por telegram mensajes de errores *
+        -- subir bd a la nube
+        """
 
 
 
@@ -125,6 +152,4 @@ class CriptoBot():
         self.hour = datetime.utcfromtimestamp(ts / 1000).hour
         pass
 
-d = CriptoBot()
-d.estrategia()
-
+#d = CriptoBot()

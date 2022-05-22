@@ -32,8 +32,8 @@ class ordenClass():
     def get_status(self):
         return self.status
 
-    def get_idCripto(self):
-        return self.idcripto
+    def get_simbolo(self):
+        return self.simbolo
 
 
     # Setters (metodos SET)
@@ -65,27 +65,22 @@ class ordenClass():
     metodos propios de la clase
     """
 
-    def buscarOrdenes_cripto_status(self, fecha):
+    def buscarOrdenes_cripto_status(self, status):
         cur = self.bd.cursor()
         query = "SELECT * FROM orden " \
-                "WHERE status = '%s'" %(fecha)
+                "WHERE status = '%s'" %(status)
         cur.execute(query)
         data = cur.fetchall()
         cur.close()
 
     def insertarOrden(self, idorden, monto, precio, tipo_orden, fecha, status):
         cur = self.bd.cursor()
-        query = "INSERT INTO orden (idorden, monto, precio, tipo_orden, fecha, status, simbolo) " \
+        query = "INSERT INTO orden (idorden, monto, precio_compra, tipo_orden, fecha, status, simbolo) " \
                 "VALUES('%s','%s','%s','%s','%s','%s','%s')" %(idorden, monto, precio, tipo_orden, fecha, status ,self.simbolo)
 
         cur.execute(query)
         self.bd.commit()
 
-    def updateOrden(self, status, id):
-        cur = self.bd.cursor()
-        query = "UPDATE orden SET status = %s WHERE idorden=%s" %(status ,id)
-        cur.execute(query)
-        self.bd.commit()
 
 
 
