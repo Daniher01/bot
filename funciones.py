@@ -172,10 +172,13 @@ def  ejecutarOrden(simbolo, BuySell, cantidad,precio):
        return idOrden, status
 
     except Exception as e:
-        print('ERROR: ',e)
+        print('ERROR -> ejecutarOrden: ',e)
         return None, None
 
 def cancelarOrden(simbolo, id):
     orden = cliente.cancel_order(symbol=simbolo, orderId=id)
+    idOrden = orden.get('orderId')
+    status = orden.get('status')
     print('function::cancelarOrden -> Se cancelo la orden')
-    return orden
+    print('function::cancelarOrden -> ID: ', idOrden, ' status: ', status)
+    return idOrden, status

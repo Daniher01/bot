@@ -71,8 +71,10 @@ class CriptoBot():
     """convierte la cantidad de USD a BTC"""
     def convertirCantidad(self, fiat):
         cantidad_en_btc = fiat / self.precio_actual
-        cantidad_en_btc = round(cantidad_en_btc, 3)
-        print(cantidad_en_btc)
+        cantidad_en_btc = round(cantidad_en_btc, 5)
+        fiat = round(fiat,2)
+        print('cantidad de compra en btc: ',cantidad_en_btc)
+        print('cantidad de compra en fiat: ', fiat)
         return cantidad_en_btc
 
     """retorna el porcentaje de el monto ingresado"""
@@ -81,7 +83,8 @@ class CriptoBot():
 
     """define el porcentaje por debajo del precio actual para ejecutar la orden de compra"""
     def definirPrecioCompra(self, porcentaje):
-        precio_btc = self.precio_actual * porcentaje
+        precio_btc = round(self.precio_actual - (self.precio_actual * porcentaje),2)
+        print('precio de compra en btc -> ',precio_btc)
         return precio_btc
 
 
@@ -92,8 +95,14 @@ class CriptoBot():
         #SABER EL PRECIO ACTUAL EN RELACION CON EL CIERRE DEL DIA ANTERIOR
         if self.hayNuevoATH():
             moneda, liquidez, bloqueado = self.buscar_moneda('BTC')
-            porcentaje_btc = round(self.definirPorcentaje(liquidez, 0.25),5)
+            porcentaje_btc = round(self.definirPorcentaje(round(liquidez,2), 0.25),5)
             print('se cancelan las ordenes pendientes y se toman ganancias')
+            dataOrden = self.ordenClass.buscarOrdenes_cripto_status('NEW')
+            for id in dataOrden:
+                print('idOrden:: ',id[0])
+                idorden, status = funciones.cancelarOrden(self.simbolo, id[0])
+                self.ordenClass.updateOrden(idorden, status)
+
             if porcentaje_btc > cantidad_min:
                 print(f'tienes para comprar con el {0.25 * 100}% del portafolio, portafolio total:  {liquidez} ')
                 idorden, status = funciones.ejecutarOrden(self.simbolo, 'SELL',porcentaje_btc,self.precio_actual)
@@ -109,20 +118,21 @@ class CriptoBot():
                 if liquidez > cantidad_min_dolar:
                     #COMPRAR CON PORCENTAJES DEL PORTAFOLIO
                     porcentaje_liquidez1 = self.definirPorcentaje(liquidez, 0.25)
-                    porcentaje_liquidez2 = self.definirPorcentaje(liquidez, 0.25)
+                    porcentaje_liquidez2 = self.definirPorcentaje(liquidez, 0.30)
                     if porcentaje_liquidez1 > cantidad_min_dolar: # si el porcentaje del portafolio se puede ejecutar la compra
                         print(f'tienes para comprar con el {0.25*100}% del portafolio, portafolio total:  {liquidez} ')
                         idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(porcentaje_liquidez1), self.definirPrecioCompra(0.05))
                         if idorden != None:
                             self.ordenClass.insertarOrden(idorden, porcentaje_liquidez1, self.precio_actual, 'BUY', datetime.today(), status)
-                    elif porcentaje_liquidez2 > cantidad_min_dolar: # si el porcentaje del portafolio se puede ejecutar la compra
-                        print(f'tienes para comprar con el {0.5*100}% del portafolio: {liquidez} ')
-                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(porcentaje_liquidez2), self.definirPrecioCompra(0.10))
-                        if idorden != None:
-                            self.ordenClass.insertarOrden(idorden, porcentaje_liquidez2, self.precio_actual, 'BUY', self.fechaActual, status)
+                            #REVISA QUE TENGA PARA HACER LA SEGUNDA COMPRA
+                        if porcentaje_liquidez2 > cantidad_min_dolar: # si el porcentaje del portafolio se puede ejecutar la compra
+                            print(f'tienes para comprar con el {0.25*100}% del portafolio: {liquidez} ')
+                            idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(porcentaje_liquidez2), self.definirPrecioCompra(0.10))
+                            if idorden != None:
+                                self.ordenClass.insertarOrden(idorden, porcentaje_liquidez2, self.precio_actual, 'BUY', self.fechaActual, status)
                     else: #el porcentaje del portafolio no llega al minimo para la compra
                         print(f'tienes para comprar solo con el {100}% del portafolio: {liquidez}')
-                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(liquidez), '15000')
+                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(liquidez), self.definirPrecioCompra(0.10))
                         self.ordenClass.insertarOrden(idorden, liquidez, self.precio_actual, 'BUY',datetime.today(), status)
                 else:
                     print('no tienes para comprar')
@@ -153,3 +163,4 @@ class CriptoBot():
         pass
 
 d = CriptoBot()
+d.estrategia()

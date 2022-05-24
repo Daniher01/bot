@@ -71,15 +71,23 @@ class ordenClass():
                 "WHERE status = '%s'" %(status)
         cur.execute(query)
         data = cur.fetchall()
+        return data
         cur.close()
 
     def insertarOrden(self, idorden, monto, precio, tipo_orden, fecha, status):
         cur = self.bd.cursor()
         query = "INSERT INTO orden (idorden, monto, precio_compra, tipo_orden, fecha, status, simbolo) " \
                 "VALUES('%s','%s','%s','%s','%s','%s','%s')" %(idorden, monto, precio, tipo_orden, fecha, status ,self.simbolo)
-
         cur.execute(query)
         self.bd.commit()
+
+    def updateOrden(self, idorden, status):
+        cur = self.bd.cursor()
+        query = "UPDATE orden SET status='%s' WHERE idorden='%s'"%(status,idorden )
+        cur.execute(query)
+        self.bd.commit()
+
+
 
 
 
