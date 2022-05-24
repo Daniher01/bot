@@ -50,7 +50,7 @@ class CriptoBot():
             if balance['asset'][d] == cripto:
                 liquidez = float(balance['free'][d])
                 bloqueado = float(balance['locked'][d])
-                return cripto, liquidez, bloqueado
+                return cripto, round(liquidez,2), bloqueado
 
     def hayNuevoATH(self):
         print('function::hayNuevoATH')
@@ -72,9 +72,7 @@ class CriptoBot():
     def convertirCantidad(self, fiat):
         cantidad_en_btc = fiat / self.precio_actual
         cantidad_en_btc = round(cantidad_en_btc, 5)
-        fiat = round(fiat,2)
         print('cantidad de compra en btc: ',cantidad_en_btc)
-        print('cantidad de compra en fiat: ', fiat)
         return cantidad_en_btc
 
     """retorna el porcentaje de el monto ingresado"""
@@ -93,13 +91,12 @@ class CriptoBot():
         """elegir estrategia"""
         cantidad_min, cantidad_max, cantidad_min_dolar = funciones.cantidad_min_max(self.simbolo)
         #SABER EL PRECIO ACTUAL EN RELACION CON EL CIERRE DEL DIA ANTERIOR
-        if self.hayNuevoATH():
+        if self.hayNuevoATH() :
             moneda, liquidez, bloqueado = self.buscar_moneda('BTC')
-            porcentaje_btc = round(self.definirPorcentaje(round(liquidez,2), 0.25),5)
+            porcentaje_btc = round(self.definirPorcentaje(liquidez, 0.25),5)
             print('se cancelan las ordenes pendientes y se toman ganancias')
             dataOrden = self.ordenClass.buscarOrdenes_cripto_status('NEW')
             for id in dataOrden:
-                print('idOrden:: ',id[0])
                 idorden, status = funciones.cancelarOrden(self.simbolo, id[0])
                 self.ordenClass.updateOrden(idorden, status)
 
