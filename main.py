@@ -1,6 +1,7 @@
 import time
 from os import path, remove
 from datetime import datetime
+from threading import Timer
 import os
 import pandas as pd
 from telegram.ext import Updater, CommandHandler
@@ -77,7 +78,7 @@ class CriptoBot():
 
     """retorna el porcentaje de el monto ingresado"""
     def definirPorcentaje(self,monto, porcentaje):
-        return monto * porcentaje
+        return round(monto * porcentaje,2)
 
     """define el porcentaje por debajo del precio actual para ejecutar la orden de compra"""
     def definirPrecioCompra(self, porcentaje):
@@ -97,8 +98,12 @@ class CriptoBot():
             print('se cancelan las ordenes pendientes y se toman ganancias')
             dataOrden = self.ordenClass.buscarOrdenes_cripto_status('NEW')
             for id in dataOrden:
-                idorden, status = funciones.cancelarOrden(self.simbolo, id[0])
-                self.ordenClass.updateOrden(idorden, status)
+                idorden, status = funciones.getStatusOrden(self.simbolo, id[0])
+                if status == 'NEW':
+                    idorden, status = funciones.cancelarOrden(self.simbolo, id[0])
+                    self.ordenClass.updateOrden(idorden, status)
+                elif idorden == 'FILLED':
+                    self.ordenClass.updateOrden(idorden, status)
 
             if porcentaje_btc > cantidad_min:
                 print(f'se venden {porcentaje_btc} btc')
@@ -135,7 +140,7 @@ class CriptoBot():
                                     print(f'tienes para comprar con el {0.25 * 100}% del portafolio: {liquidez} ')
                                     idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad( porcentaje_liquidez3),  self.definirPrecioCompra(0.15))
                                     if idorden != None:
-                                        self.ordenClass.insertarOrden(idorden, porcentaje_liquidez2, self.precio_actual,
+                                        self.ordenClass.insertarOrden(idorden, porcentaje_liquidez3, self.precio_actual,
                                                                       'BUY', self.fechaActual, status)
                     else: #el porcentaje del portafolio no llega al minimo para la compra
                         print(f'tienes para comprar solo con el {100}% del portafolio: {liquidez}')
@@ -148,26 +153,35 @@ class CriptoBot():
                 """no hacer nada"""
                 print('ya tienes ordenes pendientes')
 
-    """FUNCION QUE SE VA MANTENER EJECUTANDO"""
-    def run(self):
-        ''
-        """
-        -- asignar hora del servidor
-        -- ejecutar funcion estrategia solo cuando sea 00:05 hora del servidor (tal vez)
-        -- imprimir por telegram mensajes de errores *
-        -- subir bd a la nube
-        """
-
-
-
     def tiempo(self):
         print('function::tiempo')
-        time_res = conexion.cliente.get_server_time()
+        time_res = funciones.cliente.get_server_time()
         ts = time_res.get('serverTime')
         self.seconds = datetime.utcfromtimestamp(ts / 1000).second
         self.minute = datetime.utcfromtimestamp(ts / 1000).minute
         self.hour = datetime.utcfromtimestamp(ts / 1000).hour
         pass
 
-d = CriptoBot()
-d.estrategia()
+    """FUNCION QUE SE VA MANTENER EJECUTANDO"""
+    def start(self):
+        """
+        -- asignar hora del servidor
+        -- ejecutar funcion estrategia solo cuando sea 00:05 hora del servidor (tal vez)
+        -- imprimir por telegram mensajes de errores *
+        -- subir bd a la nube
+        """
+        while self.RUN == True:
+            self.tiempo()
+            if self.hour == 00 and self.minute < 59:
+                self.estrategia()
+            else:
+                print('aun no es la hora')
+            time.sleep(3540) #espera 59 minutos para ejecutarse
+
+
+
+
+
+bot = CriptoBot()
+bot.start()
+

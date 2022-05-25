@@ -182,3 +182,19 @@ def cancelarOrden(simbolo, id):
     print('function::cancelarOrden -> Se cancelo la orden')
     print('function::cancelarOrden -> ID: ', idOrden, ' status: ', status)
     return idOrden, status
+
+def getStatusOrden(simbolo, id):
+    orden = cliente.get_order(symbol=simbolo, orderId=id)
+    idOrden = orden.get('orderId')
+    status = orden.get('status')
+    print('function::getStatusOrden -> Se cancelo la orden')
+    print('function::getStatusOrden -> ID: ', idOrden, ' status: ', status)
+    return idOrden, status
+
+"""
+TIPOS DE STATUS:
+    NEW
+    CANCELED
+    FILLED
+"""
+
