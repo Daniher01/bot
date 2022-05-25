@@ -3,6 +3,7 @@ from datetime import datetime
 from conexion import binanceConnect
 import pandas as pd
 
+
 """
 Se tienen funciones respecto 
 a informacion de binance y 

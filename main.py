@@ -1,7 +1,6 @@
 import time
 from os import path, remove
 from datetime import datetime
-from threading import Timer
 import os
 import pandas as pd
 from telegram.ext import Updater, CommandHandler
@@ -171,12 +170,14 @@ class CriptoBot():
         -- subir bd a la nube
         """
         while self.RUN == True:
+
             self.tiempo()
             if self.hour == 00 and self.minute < 59:
                 self.estrategia()
             else:
                 print('aun no es la hora')
-            time.sleep(3540) #espera 59 minutos para ejecutarse
+            time.sleep(3540)  # espera 59 minutos para ejecutarse
+
 
 
 
@@ -184,4 +185,5 @@ class CriptoBot():
 
 bot = CriptoBot()
 bot.start()
+
 

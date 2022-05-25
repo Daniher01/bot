@@ -2,6 +2,7 @@ import psycopg2
 from binance.client import Client
 import config
 
+
 """INSTANCIA API DE BINANCE"""
 def binanceConnect():
     try:
