@@ -1,17 +1,11 @@
 import time
-from os import path, remove
+from os import path
 from datetime import datetime
-import os
 import pandas as pd
-from telegram.ext import Updater, CommandHandler
-import conexion
 from conexion import binanceConnect
 import funciones
 from ordenClass import *
-#import backtesting
-#import criptoClass
-
-
+from chatTelegramClass import ChatTelegram
 
 
 class CriptoBot():
@@ -94,23 +88,38 @@ class CriptoBot():
         if self.hayNuevoATH() :
             moneda, liquidez, bloqueado = self.buscar_moneda('BTC')
             porcentaje_btc = round(self.definirPorcentaje(liquidez, 0.25),5)
-            print('se cancelan las ordenes pendientes y se toman ganancias')
+            print('se deberian cancelar las ordenes pendientes y se tomar ganancias')
             dataOrden = self.ordenClass.buscarOrdenes_cripto_status('NEW')
-            for id in dataOrden:
-                idorden, status = funciones.getStatusOrden(self.simbolo, id[0])
-                if status == 'NEW':
-                    idorden, status = funciones.cancelarOrden(self.simbolo, id[0])
-                    self.ordenClass.updateOrden(idorden, status)
-                elif idorden == 'FILLED':
-                    self.ordenClass.updateOrden(idorden, status)
+            if len(dataOrden) > 0:
+                hayOrdenesFILLED = False
+                for id in dataOrden:
+                    #SE GUARDAN LAS FUNCIONES EJECUTADAS
+                    idorden, status = funciones.getStatusOrden(self.simbolo, id[0])
+                    if status == 'FILLED':
+                        self.ordenClass.updateOrden(idorden, status)
+                        hayOrdenesFILLED = True
+                    #SE BORRAN LAS FUNCIONES QUE NO SE EJECUTARON
+                    elif status == 'NEW':
+                        idorden, status = funciones.cancelarOrden(self.simbolo, id[0])
+                        self.ordenClass.updateOrden(idorden, status)
+                        hayOrdenesFILLED = False
 
-            if porcentaje_btc > cantidad_min:
-                print(f'se venden {porcentaje_btc} btc')
-                idorden, status = funciones.ejecutarOrden(self.simbolo, 'SELL',porcentaje_btc,self.precio_actual)
-                #idorden = None
-                print(porcentaje_btc)
-                if idorden != None:
-                    self.ordenClass.insertarOrden(idorden, porcentaje_btc, self.precio_actual, 'SELL', datetime.today(), status)
+
+                #si ejecuta la orden de venta de btc y se ejecutaron las ordenes de compra
+                if hayOrdenesFILLED == True:
+                    ChatTelegram('Las ordenes de compra ya fueron ejecutadas')
+
+                    if porcentaje_btc > cantidad_min :
+                        ChatTelegram('Se vende el 25% de tu portafolio')
+                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'SELL',porcentaje_btc,self.precio_actual)
+                        if idorden != None:
+                            self.ordenClass.insertarOrden(idorden, porcentaje_btc, self.precio_actual, 'SELL', datetime.today(), status)
+                    else:
+                        ChatTelegram('No tienes para vender el 25% de tu capital en btc')
+                else:
+                    ChatTelegram('Se cancelan las Ordenes de compra')
+            else:
+                ChatTelegram('No hay Ordenes para cancelar' )
 
         else: #-------------------------------------------CASO PARA EJECUTAR ORDENES DE COMPRA-------------------------------------------------
             moneda, liquidez, bloqueado = self.buscar_moneda('BUSD')
@@ -142,15 +151,24 @@ class CriptoBot():
                                         self.ordenClass.insertarOrden(idorden, porcentaje_liquidez3, self.precio_actual,
                                                                       'BUY', self.fechaActual, status)
                     else: #el porcentaje del portafolio no llega al minimo para la compra
-                        print(f'tienes para comprar solo con el {100}% del portafolio: {liquidez}')
+                        mensaje = f'tienes para comprar solo con el {100}% del portafolio: {liquidez}'
+                        print(mensaje)
+                        ChatTelegram(mensaje)
                         idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(liquidez), self.definirPrecioCompra(0.10))
                         self.ordenClass.insertarOrden(idorden, liquidez, self.precio_actual, 'BUY',datetime.today(), status)
+
+                    ChatTelegram('Se abrieron ordenes de compra')
                 else:
-                    print('no tienes para comprar')
-                    """no hacer nada"""
+                    mensaje='no tienes para comprar'
+                    print(mensaje)
+                    ChatTelegram(mensaje)
             else:
-                """no hacer nada"""
-                print('ya tienes ordenes pendientes')
+                """no hacer nada
+                    MENSAJE POR TELEGRAM
+                """
+                mensaje = 'ya tienes ordenes pendientes'
+                print(mensaje)
+                ChatTelegram(mensaje)
 
     def tiempo(self):
         print('function::tiempo')
@@ -164,26 +182,26 @@ class CriptoBot():
     """FUNCION QUE SE VA MANTENER EJECUTANDO"""
     def start(self):
         """
-        -- asignar hora del servidor
-        -- ejecutar funcion estrategia solo cuando sea 00:05 hora del servidor (tal vez)
-        -- imprimir por telegram mensajes de errores *
-        -- subir bd a la nube
+            Funcion principal
         """
+
         while self.RUN == True:
 
             self.tiempo()
+
             if self.hour == 00 and self.minute < 59:
                 self.estrategia()
             else:
-                print('aun no es la hora')
+                ChatTelegram('Aun no es la hora')
+
             time.sleep(3540)  # espera 59 minutos para ejecutarse
 
 
 
 
-
-
 bot = CriptoBot()
-bot.start()
+bot.estrategia()
+
+
 
 

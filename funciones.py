@@ -2,6 +2,7 @@ import csv
 from datetime import datetime
 from conexion import binanceConnect
 import pandas as pd
+from chatTelegramClass import ChatTelegram
 
 
 """
@@ -91,7 +92,9 @@ def datos_ticker(simbolo, temporalidad,limite=False):
         else:
             return existe
     except Exception as e:
-        print('ERROR:', e)
+        mensaje = 'ERROR:', e
+        print(mensaje)
+        ChatTelegram(mensaje)
 
 # Muestra el balance de mi cuenta
 def balance():
@@ -106,7 +109,9 @@ def balance():
         balance = pd.DataFrame(list_balance)
         return balance
     except Exception as e:
-        print('ERROR: ', e)
+        mensaje = 'ERROR:', e
+        print(mensaje)
+        ChatTelegram(mensaje)
 
 
 #genera un CSV
@@ -122,7 +127,9 @@ def get_csv(data, simbolo, temporalidad, save=True, star_data=False):
             print('Datos cargados...')
         return data
     except Exception as e:
-        print('ERROR: ',e)
+        mensaje = 'ERROR:', e
+        print(mensaje)
+        ChatTelegram(mensaje)
         return None
 
 def leer_csv(simbolo, descripcion):
@@ -136,7 +143,9 @@ def leer_csv(simbolo, descripcion):
         datos_df = datos_df.drop(datos_df.index[[0]])
         return datos_df
     except Exception as e:
-        print('ERROR: ',e)
+        mensaje = 'ERROR:', e
+        print(mensaje)
+        ChatTelegram(mensaje)
         return None
 
 
@@ -173,7 +182,9 @@ def  ejecutarOrden(simbolo, BuySell, cantidad,precio):
        return idOrden, status
 
     except Exception as e:
-        print('ERROR -> ejecutarOrden: ',e)
+        mensaje = 'ERROR -> ejecutarOrden: ',e
+        print(mensaje)
+        ChatTelegram(mensaje)
         return None, None
 
 def cancelarOrden(simbolo, id):

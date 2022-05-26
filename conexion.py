@@ -3,6 +3,7 @@ from binance.client import Client
 import config
 
 
+
 """INSTANCIA API DE BINANCE"""
 def binanceConnect():
     try:
@@ -11,7 +12,8 @@ def binanceConnect():
         print('Conexion a binance Exitosa')
         return cliente
     except Exception as e:
-        print('EROOR AL CONECTAR CON BINANCE: ', e)
+        mensaje = 'EROOR AL CONECTAR CON BINANCE: ', e
+        print(mensaje)
         cliente = None
         return cliente
 
@@ -21,6 +23,7 @@ def bdConnect():
         print('Conexion a la BD exitosa')
         return bd
     except Exception as e:
-        print('ERROR AL CONECTAR A LA BD: ', e)
+        mensaje = 'ERROR AL CONECTAR A LA BD: ', e
+        print(mensaje)
         bd = None
         return  bd

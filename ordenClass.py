@@ -1,4 +1,5 @@
 from conexion import bdConnect
+from chatTelegramClass import ChatTelegram
 
 class ordenClass():
 
@@ -75,7 +76,9 @@ class ordenClass():
             return data
             cur.close()
         except Exception as e:
-            error('function::buscarOrdenes_cripto_status',e)
+            mensaje = 'function::buscarOrdenes_cripto_status',e
+            print(mensaje)
+            ChatTelegram(mensaje)
 
     def insertarOrden(self, idorden, monto, precio, tipo_orden, fecha, status):
         try:
@@ -86,7 +89,9 @@ class ordenClass():
             cur.execute(query)
             self.bd.commit()
         except Exception as e:
-            print('function::insertarOrden', e)
+            mensaje = 'function::insertarOrden', e
+            print(mensaje)
+            ChatTelegram(mensaje)
 
 
     def updateOrden(self, idorden, status):
@@ -96,7 +101,9 @@ class ordenClass():
             cur.execute(query)
             self.bd.commit()
         except Exception as e:
-            print('function::updateOrden', e)
+            mensaje = 'function::updateOrden', e
+            print(mensaje)
+            ChatTelegram(mensaje)
 
 
 
