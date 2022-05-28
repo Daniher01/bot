@@ -201,7 +201,7 @@ class CriptoBot():
 
 
 bot = CriptoBot()
-bot.estrategia()
+bot.start()
 
 
 
