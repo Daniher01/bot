@@ -86,6 +86,7 @@ class CriptoBot():
         cantidad_min, cantidad_max, cantidad_min_dolar = funciones.cantidad_min_max(self.simbolo)
         #SABER EL PRECIO ACTUAL EN RELACION CON EL CIERRE DEL DIA ANTERIOR
         if self.hayNuevoATH() :
+            ChatTelegram('El precio de hoy es mayor que el de ayer')
             moneda, liquidez, bloqueado = self.buscar_moneda('BTC')
             porcentaje_btc = round(self.definirPorcentaje(liquidez, 0.25),5)
             print('se deberian cancelar las ordenes pendientes y se tomar ganancias')
@@ -107,7 +108,7 @@ class CriptoBot():
 
                 #si ejecuta la orden de venta de btc y se ejecutaron las ordenes de compra
                 if hayOrdenesFILLED == True:
-                    ChatTelegram('Las ordenes de compra ya fueron ejecutadas')
+                    ChatTelegram('Las ordenes de compra ya fueron ejecutadas, revisa binance para mas detalles')
 
                     if porcentaje_btc > cantidad_min :
                         ChatTelegram('Se vende el 25% de tu portafolio')
@@ -157,9 +158,9 @@ class CriptoBot():
                         idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(liquidez), self.definirPrecioCompra(0.10))
                         self.ordenClass.insertarOrden(idorden, liquidez, self.precio_actual, 'BUY',datetime.today(), status)
 
-                    ChatTelegram('Se abrieron ordenes de compra')
+                    ChatTelegram('Se abrieron ordenes de compra, revisa binance para mas detalles')
                 else:
-                    mensaje='no tienes para comprar'
+                    mensaje='no tienes liquidez para comprar'
                     print(mensaje)
                     ChatTelegram(mensaje)
             else:

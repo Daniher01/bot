@@ -14,8 +14,8 @@ CHAT_ID = "929430484"
 Conectarse a la BD de postgresql
 """
 
-HOST = 'localhost'
+HOST = 'postgresql-bot.cnpr1ooxtsii.us-east-1.rds.amazonaws.com'
 DBNAME = 'Bot'
 USER = 'postgres'
-PASSWORD = ''
+PASSWORD = 'Danielcripto'
 PORT = 5432
