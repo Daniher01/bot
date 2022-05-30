@@ -183,19 +183,16 @@ class CriptoBot():
     """FUNCION QUE SE VA MANTENER EJECUTANDO"""
     def start(self):
         """
-            Funcion principal
+            Inicia el bot
         """
-
+        ChatTelegram('Corriendo el bot...')
         while self.RUN == True:
 
             self.tiempo()
 
             if self.hour == 00 and self.minute < 59:
                 self.estrategia()
-            else:
-                ChatTelegram('Aun no es la hora')
 
-            time.sleep(59)  # espera 59 minutos para ejecutarse
 
 
 
