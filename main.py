@@ -186,10 +186,9 @@ class CriptoBot():
             Inicia el bot
         """
         ChatTelegram('Corriendo el bot...')
+        self.tiempo()
+
         while self.RUN == True:
-
-            self.tiempo()
-
             if self.hour == 00 and self.minute < 59:
                 self.estrategia()
 
