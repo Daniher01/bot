@@ -122,7 +122,70 @@ class CriptoBot():
             else:
                 ChatTelegram('No hay Ordenes para cancelar' )
 
-        else: #-------------------------------------------CASO PARA EJECUTAR ORDENES DE COMPRA-------------------------------------------------
+            #-------------------------------EJECUTA LAS ORDENES DE COMPRA CASO 1
+            moneda, liquidez, bloqueado = self.buscar_moneda('BUSD')
+            if bloqueado == 0:  # si no tengo ordenes pendientes
+                # SABER SI TENGO BALANCE POSITIVO PARA HACER COMPRA
+                if liquidez > cantidad_min_dolar:
+                    # COMPRAR CON PORCENTAJES DEL PORTAFOLIO
+                    porcentaje_liquidez1 = self.definirPorcentaje(liquidez, 0.25)
+                    porcentaje_liquidez2 = self.definirPorcentaje(liquidez, 0.30)
+                    porcentaje_liquidez3 = self.definirPorcentaje(liquidez, 0.35)
+                    if porcentaje_liquidez1 > cantidad_min_dolar:  # si el porcentaje del portafolio se puede ejecutar la compra
+                        print(f'tienes para comprar con el {0.25 * 100}% del portafolio, portafolio total:  {liquidez}')
+                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY',
+                                                                  self.convertirCantidad(porcentaje_liquidez1),
+                                                                  self.definirPrecioCompra(0.01))
+                        if idorden != None:
+                            self.ordenClass.insertarOrden(idorden, porcentaje_liquidez1, self.precio_actual, 'BUY',
+                                                          datetime.today(), status)
+
+                            # REVISA QUE TENGA PARA HACER LA SEGUNDA COMPRA
+                        if porcentaje_liquidez2 > cantidad_min_dolar:  # si el porcentaje del portafolio se puede ejecutar la compra
+                            print(f'tienes para comprar con el {0.25 * 100}% del portafolio: {liquidez}')
+                            idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY',
+                                                                      self.convertirCantidad(porcentaje_liquidez2),
+                                                                      self.definirPrecioCompra(0.03))
+                            if idorden != None:
+                                self.ordenClass.insertarOrden(idorden, porcentaje_liquidez2, self.precio_actual, 'BUY',
+                                                              self.fechaActual, status)
+
+                                # REVISA QUE TENGA PARA HACER LA SEGUNDA COMPRA
+                                if porcentaje_liquidez3 > cantidad_min_dolar:  # si el porcentaje del portafolio se puede ejecutar la compra
+                                    print(f'tienes para comprar con el {0.25 * 100}% del portafolio: {liquidez}')
+                                    idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY',
+                                                                              self.convertirCantidad(porcentaje_liquidez3),
+                                                                              self.definirPrecioCompra(0.05))
+                                    if idorden != None:
+                                        self.ordenClass.insertarOrden(idorden, porcentaje_liquidez3, self.precio_actual,
+                                                                      'BUY', self.fechaActual, status)
+                    else:  # el porcentaje del portafolio no llega al minimo para la compra
+                        mensaje = f'tienes para comprar solo con el {100}% del portafolio: {liquidez}'
+                        print(mensaje)
+                        ChatTelegram(mensaje)
+                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(liquidez),
+                                                                  self.definirPrecioCompra(0.10))
+                        self.ordenClass.insertarOrden(idorden, liquidez, self.precio_actual, 'BUY', datetime.today(),
+                                                      status)
+
+                    ChatTelegram('Se abrieron ordenes de compra, revisa binance para mas detalles')
+                else:
+                    mensaje = 'no tienes liquidez para comprar'
+                    print(mensaje)
+                    ChatTelegram(mensaje)
+
+            else:
+                """no hacer nada
+                    MENSAJE POR TELEGRAM
+                """
+                mensaje = 'ya tienes ordenes pendientes'
+                print(mensaje)
+                ChatTelegram(mensaje)
+
+        #-----------------------------------------------------------------------------------------------
+
+
+        else: #-------------------------------------------CASO 2 PARA EJECUTAR ORDENES DE COMPRA-------------------------------------------------
             moneda, liquidez, bloqueado = self.buscar_moneda('BUSD')
             if bloqueado == 0: #si no tengo ordenes pendientes
                 #SABER SI TENGO BALANCE POSITIVO PARA HACER COMPRA
@@ -191,6 +254,7 @@ class CriptoBot():
         while self.RUN == True:
             if self.hour == 00 and self.minute < 59:
                 self.estrategia()
+                time.sleep(59) #espera 1 minuto
 
 
 
