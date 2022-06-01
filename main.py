@@ -251,13 +251,14 @@ class CriptoBot():
         print('espera 1 minuto y revisa telegram')
         time.sleep(59)
         ChatTelegram('Corriendo el bot...')
-        self.tiempo()
+
 
         while self.RUN == True:
+            self.tiempo()
             if self.hour == 00 and self.minute < 59:
                 self.estrategia()
             else:
-                ChatTelegram('Aun no es la hora')
+                ChatTelegram(f'Comprobar hora del servidor: {self.hour}:{self.minute}, Aun no es la hora')
             time.sleep(1800) #espera media hora
 
 
