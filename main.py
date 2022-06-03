@@ -124,7 +124,9 @@ class CriptoBot():
             else:
                 ChatTelegram('No hay Ordenes para cancelar' )
 
-            #-------------------------------EJECUTA LAS ORDENES DE COMPRA
+#-------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------EJECUTA LAS ORDENES DE COMPRA-------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------------------------
         moneda, liquidez, bloqueado = self.buscar_moneda('BUSD')
         if bloqueado == 0:  # si no tengo ordenes pendientes
             # SABER SI TENGO BALANCE POSITIVO PARA HACER COMPRA
