@@ -133,42 +133,75 @@ class CriptoBot():
                 porcentaje_liquidez1 = self.definirPorcentaje(liquidez, 0.25)
                 porcentaje_liquidez2 = self.definirPorcentaje(liquidez, 0.30)
                 porcentaje_liquidez3 = self.definirPorcentaje(liquidez, 0.35)
+
+                #PRECIO PARA EJECUTAR LAS ORDENES DE COMPRA
+                precio1 = self.definirPrecioCompra(0.05)
+                precio2 = self.definirPrecioCompra(0.10)
+                precio3 = self.definirPrecioCompra(0.15)
+
                 if porcentaje_liquidez1 > cantidad_min_dolar:  # si el porcentaje del portafolio se puede ejecutar la compra
                     print(f'tienes para comprar con el {0.25 * 100}% del portafolio, portafolio total:  {liquidez}')
-                    idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY',
-                                                              self.convertirCantidad(porcentaje_liquidez1),
-                                                              self.definirPrecioCompra(0.05))
-                    if idorden != None:
-                        self.ordenClass.insertarOrden(idorden, porcentaje_liquidez1, self.definirPrecioCompra(0.05), 'BUY',
-                                                      datetime.today(), status)
+                    #verifica que el precio actual este por arriba del precio de orden de compra
+                    if self.precio_actual > precio1:
+
+                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY',
+                                                                  self.convertirCantidad(porcentaje_liquidez1),
+                                                                  precio1)
+                        if idorden != None:
+                            self.ordenClass.insertarOrden(idorden, porcentaje_liquidez1, precio1, 'BUY',
+                                                          datetime.today(), status)
 
                         # REVISA QUE TENGA PARA HACER LA SEGUNDA COMPRA
                     if porcentaje_liquidez2 > cantidad_min_dolar:  # si el porcentaje del portafolio se puede ejecutar la compra
                         print(f'tienes para comprar con el {0.25 * 100}% del portafolio: {liquidez}')
-                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY',
-                                                                  self.convertirCantidad(porcentaje_liquidez2),
-                                                                  self.definirPrecioCompra(0.10))
-                        if idorden != None:
-                            self.ordenClass.insertarOrden(idorden, porcentaje_liquidez2, self.definirPrecioCompra(0.10), 'BUY',
-                                                          self.fechaActual, status)
+
+                        # verifica que el precio actual este por arriba del precio de orden de compra
+                        if self.precio_actual > precio2:
+                            idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY',
+                                                                      self.convertirCantidad(porcentaje_liquidez2),
+                                                                      precio2)
+                            if idorden != None:
+                                self.ordenClass.insertarOrden(idorden, porcentaje_liquidez2, precio2, 'BUY',
+                                                              self.fechaActual, status)
 
                             # REVISA QUE TENGA PARA HACER LA SEGUNDA COMPRA
                             if porcentaje_liquidez3 > cantidad_min_dolar:  # si el porcentaje del portafolio se puede ejecutar la compra
                                 print(f'tienes para comprar con el {0.25 * 100}% del portafolio: {liquidez}')
-                                idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY',
-                                                                          self.convertirCantidad(porcentaje_liquidez3),
-                                                                          self.definirPrecioCompra(0.15))
-                                if idorden != None:
-                                    self.ordenClass.insertarOrden(idorden, porcentaje_liquidez3, self.definirPrecioCompra(0.15),
-                                                                  'BUY', self.fechaActual, status)
+
+                                # verifica que el precio actual este por arriba del precio de orden de compra
+                                if self.precio_actual > precio3:
+                                    idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY',
+                                                                              self.convertirCantidad(porcentaje_liquidez3),
+                                                                              precio3)
+                                    if idorden != None:
+                                        self.ordenClass.insertarOrden(idorden, porcentaje_liquidez3, precio3,
+                                                                      'BUY', self.fechaActual, status)
+                                else:
+                                    ChatTelegram('El precio actual es menor al 15% del ATH temporal')
+                                    idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY',
+                                                                              self.convertirCantidad(
+                                                                                  porcentaje_liquidez3),
+                                                                              self.precio_actual)
+                                    if idorden != None:
+                                        self.ordenClass.insertarOrden(idorden, porcentaje_liquidez3,
+                                                                      self.precio_actual,
+                                                                      'BUY', self.fechaActual, status)
+
                 else:  # el porcentaje del portafolio no llega al minimo para la compra
                     mensaje = f'tienes para comprar solo con el {100}% del portafolio: {liquidez}'
                     print(mensaje)
                     ChatTelegram(mensaje)
-                    idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(liquidez),
-                                                              self.definirPrecioCompra(0.10))
-                    self.ordenClass.insertarOrden(idorden, liquidez, self.precio_actual, 'BUY', datetime.today(),
-                                                  status)
+                    if self.precio_actual < precio1 and self.precio_actual < precio2 and self.precio_actual < precio3:
+                        ChatTelegram('El precio actual es menor al 15% del ATH temporal')
+                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(liquidez),
+                                                                  self.precio_actual)
+                        self.ordenClass.insertarOrden(idorden, liquidez, self.precio_actual, 'BUY', datetime.today(),
+                                                      status)
+                    else:
+                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(liquidez),
+                                                                  precio3)
+                        self.ordenClass.insertarOrden(idorden, liquidez, precio3, 'BUY', datetime.today(),
+                                                      status)
 
                 ChatTelegram('Se abrieron ordenes de compra, revisa binance para mas detalles')
             else:
