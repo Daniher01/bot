@@ -249,7 +249,7 @@ class CriptoBot():
                 self.estrategia()
             else:
                 ChatTelegram(f'Aun no es la hora')
-            time.sleep(3600) #espera una hora
+            time.sleep(1800) #espera media hora
 
 
 
