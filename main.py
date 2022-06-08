@@ -252,11 +252,13 @@ class CriptoBot():
 
         while self.RUN == True:
             self.tiempo()
+            self.precio_actual = self.datosTicker['close'][1]
             if self.hour == 1 and self.minute < 59:
                 self.estrategia()
             else:
                 ChatTelegram(f'Aun no es la hora')
-            time.sleep(1740) #espera media hora
+                ChatTelegram(f'Precio Actual: {self.precio_actual}')
+            time.sleep(1795) #espera media hora
 
 
 
