@@ -54,6 +54,7 @@ def existe_par(simbolo):
 # muestra todos los datos desde cierta fecha, ordenadamente
 def datos_ticker(simbolo, temporalidad,limite=False):
     try:
+        print('function datos ticker')
         existe = existe_par(simbolo)
         if existe == True:
             if limite == False:

@@ -245,20 +245,22 @@ class CriptoBot():
         """
             Inicia el bot
         """
-        print('espera 1 minuto y revisa telegram')
-        time.sleep(59)
+        print('espera 30 segundos y revisa telegram')
+        time.sleep(29)
         ChatTelegram('Corriendo el bot...')
 
 
         while self.RUN == True:
             self.tiempo()
+            self.datosTicker = funciones.datos_ticker(self.simbolo, self.time, 2)
             self.precio_actual = self.datosTicker['close'][1]
-            if self.hour == 1 and self.minute < 59:
+            if self.hour == 00 and self.minute < 59:
                 self.estrategia()
             else:
                 ChatTelegram(f'Aun no es la hora')
                 ChatTelegram(f'Precio Actual: {self.precio_actual}')
             time.sleep(1795) #espera media hora
+            #time.sleep(15)
 
 
 
