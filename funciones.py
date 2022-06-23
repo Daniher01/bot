@@ -3,6 +3,7 @@ from datetime import datetime
 from conexion import binanceConnect
 import pandas as pd
 from chatTelegramClass import ChatTelegram
+import json
 
 
 """
@@ -203,6 +204,20 @@ def getStatusOrden(simbolo, id):
     print('function::getStatusOrden -> Se cancelo la orden')
     print('function::getStatusOrden -> ID: ', idOrden, ' status: ', status)
     return idOrden, status
+
+def getATH():
+    with open('ath.json', 'r') as file:
+        data = json.load(file)
+
+    for client in data['cripto']:
+        return client['ath']
+
+def editarATH(ath):
+    data = {}
+    data['cripto'] = [{"ath": ath}]
+
+    with open('ath.json', 'w') as file:
+        json.dump(data, file, indent=4)
 
 """
 TIPOS DE STATUS:

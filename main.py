@@ -17,7 +17,7 @@ class CriptoBot():
         self.datosTicker = funciones.datos_ticker(self.simbolo, self.time, 2)
         self.precio_actual = self.datosTicker['close'][1]
         self.ordenClass = ordenClass(self.simbolo)
-        self.ath_temporal = 0 #guardar el precio al momento de hacer la compra
+        self.ath_temporal = float(funciones.getATH()) #guardar el precio al momento de hacer la compra
         self.descripcion = 'Registro_compra' #descripcion para el nombre del csv
         self.csv_cripto = 'Lista_criptos.csv' #nombre del CSV donde esta la lista de las criptos
         """Se le asigna el tiempo del servidor"""
@@ -54,8 +54,9 @@ class CriptoBot():
             self. precio_actual = self.datosTicker['close'][1]
             if self.ath_temporal == 0:
                 self.ath_temporal = precio_ayer
-            if self.precio_actual >= self.ath_temporal:
+            if self.precio_actual > self.ath_temporal:
                 self.ath_temporal = self.precio_actual
+                funciones.editarATH(self.precio_actual)
                 datareturn = True #hay nuevo ath temporal
             else:
                 datareturn = False #no hay nuevo ath temporal
@@ -245,8 +246,8 @@ class CriptoBot():
         """
             Inicia el bot
         """
-        print('espera 30 segundos y revisa telegram')
-        time.sleep(29)
+        print('espera 15 segundos y revisa telegram')
+        time.sleep(15)
         ChatTelegram('Corriendo el bot...')
 
 
@@ -259,7 +260,7 @@ class CriptoBot():
             else:
                 ChatTelegram(f'Aun no es la hora')
                 ChatTelegram(f'Precio Actual: {self.precio_actual}')
-            time.sleep(1795) #espera media hora
+            time.sleep(1800) #espera media hora
             #time.sleep(15)
 
 
