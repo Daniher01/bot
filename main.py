@@ -4,7 +4,6 @@ from datetime import datetime
 import pandas as pd
 from conexion import binanceConnect
 import funciones
-from ordenClass import *
 from chatTelegramClass import ChatTelegram
 
 
@@ -16,8 +15,7 @@ class CriptoBot():
         self.RUN = True
         self.datosTicker = funciones.datos_ticker(self.simbolo, self.time, 2)
         self.precio_actual = self.datosTicker['close'][1]
-        self.ordenClass = ordenClass(self.simbolo)
-        self.ath_temporal = float(funciones.getATH()) #guardar el precio al momento de hacer la compra
+        self.ath_temporal = funciones.getATH() #guardar el precio al momento de hacer la compra
         self.descripcion = 'Registro_compra' #descripcion para el nombre del csv
         self.csv_cripto = 'Lista_criptos.csv' #nombre del CSV donde esta la lista de las criptos
         """Se le asigna el tiempo del servidor"""
@@ -25,18 +23,6 @@ class CriptoBot():
         self.seconds = 0
         self.minute = 0
         self.hour = 0
-
-    def log(self, cripto, precio_compra):
-        """Resgistro de actividad del bot"""
-        print('function::log ')
-        old, new = funciones.tiempo_server()
-        lista_registro = [[cripto], [precio_compra], [new]]
-        registro_df = pd.DataFrame(lista_registro)
-        if not path.exists('%s-%s-data.csv' % (cripto, self.descripcion)):
-            funciones.get_csv(registro_df, cripto, self.descripcion)
-        else:
-            pass
-        pass
 
     def buscar_moneda(self, cripto):
         balance = funciones.balance()
@@ -97,19 +83,18 @@ class CriptoBot():
                 moneda, liquidez, bloqueado = self.buscar_moneda('BTC')
                 porcentaje_btc = round(self.definirPorcentaje(liquidez, 0.20),5)
                 print('se deberian cancelar las ordenes pendientes y se tomar ganancias')
-                dataOrden = self.ordenClass.buscarOrdenes_cripto_status('NEW')
+                dataOrden = funciones.leerIdOrdenes()
                 if len(dataOrden) > 0:
                     hayOrdenesFILLED = False
                     for id in dataOrden:
                         #SE GUARDAN LAS FUNCIONES EJECUTADAS
-                        idorden, status = funciones.getStatusOrden(self.simbolo, id[0])
+                        idOrden, status, precio, cantidad, side = funciones.getStatusOrden(self.simbolo, id)
                         if status == 'FILLED':
-                            self.ordenClass.updateOrden(idorden, status)
+                            funciones.agregarOrden(idOrden, cantidad, precio, str(datetime.today()), side)
                             hayOrdenesFILLED = True
                         #SE BORRAN LAS FUNCIONES QUE NO SE EJECUTARON
                         elif status == 'NEW':
-                            idorden, status = funciones.cancelarOrden(self.simbolo, id[0])
-                            self.ordenClass.updateOrden(idorden, status)
+                            idorden, status = funciones.cancelarOrden(self.simbolo, id)
                             hayOrdenesFILLED = False
 
 
@@ -119,9 +104,9 @@ class CriptoBot():
 
                         if porcentaje_btc > cantidad_min :
                             ChatTelegram('Se vende el 20% de BTC')
-                            idorden, status = funciones.ejecutarOrden(self.simbolo, 'SELL',porcentaje_btc,self.precio_actual)
+                            idOrden, status, precio, cantidad, side = funciones.ejecutarOrden(self.simbolo, 'SELL',porcentaje_btc,self.precio_actual)
                             if idorden != None:
-                                self.ordenClass.insertarOrden(idorden, porcentaje_btc, self.precio_actual, 'SELL', datetime.today(), status)
+                                funciones.agregarOrden(idOrden, cantidad, precio, str(datetime.today()), side)
                         else:
                             ChatTelegram('No tienes para vender el 20% de tu capital en btc')
                     else:
@@ -152,12 +137,10 @@ class CriptoBot():
                         #verifica que el precio actual este por arriba del precio de orden de compra
                         if self.precio_actual > precio1:
 
-                            idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY',
+                            idOrden, status, precio, cantidad, side = funciones.ejecutarOrden(self.simbolo, 'BUY',
                                                                       self.convertirCantidad(porcentaje_liquidez1),
                                                                       precio1)
-                            if idorden != None:
-                                self.ordenClass.insertarOrden(idorden, porcentaje_liquidez1, precio1, 'BUY',
-                                                              datetime.today(), status)
+                            funciones.agregarIdOrden(idOrden)
 
                             # REVISA QUE TENGA PARA HACER LA SEGUNDA COMPRA
                         if porcentaje_liquidez2 > cantidad_min_dolar:  # si el porcentaje del portafolio se puede ejecutar la compra
@@ -165,12 +148,10 @@ class CriptoBot():
 
                             # verifica que el precio actual este por arriba del precio de orden de compra
                             if self.precio_actual > precio2:
-                                idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY',
+                                idOrden, status, precio, cantidad, side = funciones.ejecutarOrden(self.simbolo, 'BUY',
                                                                           self.convertirCantidad(porcentaje_liquidez2),
                                                                           precio2)
-                                if idorden != None:
-                                    self.ordenClass.insertarOrden(idorden, porcentaje_liquidez2, precio2, 'BUY',
-                                                                  self.fechaActual, status)
+                                funciones.agregarIdOrden(idOrden)
 
                                 # REVISA QUE TENGA PARA HACER LA SEGUNDA COMPRA
                                 if porcentaje_liquidez3 > cantidad_min_dolar:  # si el porcentaje del portafolio se puede ejecutar la compra
@@ -178,22 +159,16 @@ class CriptoBot():
 
                                     # verifica que el precio actual este por arriba del precio de orden de compra
                                     if self.precio_actual > precio3:
-                                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY',
+                                        idOrden, status, precio, cantidad, side = funciones.ejecutarOrden(self.simbolo, 'BUY',
                                                                                   self.convertirCantidad(porcentaje_liquidez3),
                                                                                   precio3)
-                                        if idorden != None:
-                                            self.ordenClass.insertarOrden(idorden, porcentaje_liquidez3, precio3,
-                                                                          'BUY', self.fechaActual, status)
                                     else:
                                         ChatTelegram('El precio actual es menor al 15% del ATH temporal')
-                                        idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY',
+                                        idOrden, status, precio, cantidad, side = funciones.ejecutarOrden(self.simbolo, 'BUY',
                                                                                   self.convertirCantidad(
                                                                                       porcentaje_liquidez3),
                                                                                   self.precio_actual)
-                                        if idorden != None:
-                                            self.ordenClass.insertarOrden(idorden, porcentaje_liquidez3,
-                                                                          self.precio_actual,
-                                                                          'BUY', self.fechaActual, status)
+                                        funciones.agregarIdOrden(idOrden)
 
                     else:  # el porcentaje del portafolio no llega al minimo para la compra
                         mensaje = f'tienes para comprar solo con el {100}% del portafolio: {liquidez}'
@@ -201,15 +176,13 @@ class CriptoBot():
                         ChatTelegram(mensaje)
                         if self.precio_actual < precio1 and self.precio_actual < precio2 and self.precio_actual < precio3:
                             ChatTelegram('El precio actual es menor al 15% del ATH temporal')
-                            idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(liquidez),
+                            idOrden, status, precio, cantidad, side = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(liquidez),
                                                                       self.precio_actual)
-                            self.ordenClass.insertarOrden(idorden, liquidez, self.precio_actual, 'BUY', datetime.today(),
-                                                          status)
+                            funciones.agregarIdOrden(idOrden)
                         else:
-                            idorden, status = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(liquidez),
+                            idOrden, status, precio, cantidad, side = funciones.ejecutarOrden(self.simbolo, 'BUY', self.convertirCantidad(liquidez),
                                                                       precio3)
-                            self.ordenClass.insertarOrden(idorden, liquidez, precio3, 'BUY', datetime.today(),
-                                                          status)
+                            funciones.agregarIdOrden(idOrden)
 
                     ChatTelegram('Se abrieron ordenes de compra, revisa binance para mas detalles')
                 else:
@@ -246,8 +219,8 @@ class CriptoBot():
         """
             Inicia el bot
         """
-        print('espera 15 segundos y revisa telegram')
-        time.sleep(15)
+        print('espera 5 segundos y revisa telegram')
+        time.sleep(5)
         ChatTelegram('Corriendo el bot...')
 
 

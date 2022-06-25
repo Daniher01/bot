@@ -179,9 +179,12 @@ def  ejecutarOrden(simbolo, BuySell, cantidad,precio):
         )
        idOrden =  orden.get('orderId')
        status = orden.get('status')
+       precio = orden.get('price')
+       cantidad = orden.get('origQty')
+       side = orden.get('side')
        print('function::ejecutaOrden -> Se ejecuto la orden')
        print('function::ejecutaOrden -> ID: ', idOrden,' status: ', status)
-       return idOrden, status
+       return idOrden, status, precio, cantidad, side
 
     except Exception as e:
         mensaje = 'ERROR -> ejecutarOrden: ',e
@@ -201,23 +204,62 @@ def getStatusOrden(simbolo, id):
     orden = cliente.get_order(symbol=simbolo, orderId=id)
     idOrden = orden.get('orderId')
     status = orden.get('status')
-    print('function::getStatusOrden -> Se cancelo la orden')
+    precio = orden.get('price')
+    cantidad = orden.get('origQty')
+    side = orden.get('side')
     print('function::getStatusOrden -> ID: ', idOrden, ' status: ', status)
-    return idOrden, status
+    return idOrden, status, precio, cantidad, side
+
+"""FUNCIUONES PAR INTERACTUAR CON LOS ARCHIVOS JSON"""
 
 def getATH():
-    with open('ath.json', 'r') as file:
+    with open('data/ath.json', 'r') as file:
         data = json.load(file)
 
     for client in data['cripto']:
-        return client['ath']
+        return float(client['ath'])
 
 def editarATH(ath):
     data = {}
     data['cripto'] = [{"ath": ath}]
 
-    with open('ath.json', 'w') as file:
+    with open('data/ath.json', 'w') as file:
         json.dump(data, file, indent=4)
+
+def agregarOrden(idorden, cantidad, precio_compra, fecha, BuySell):
+
+    data = {
+        'idorden': idorden, #string
+        'cantidad': cantidad, #float
+        'precio_compra': precio_compra, #float
+        'fecha': fecha, #date,
+        'BuySell':BuySell #string
+        }
+
+    with open('data/order.json', "r") as file:
+        datos = json.load(file)
+
+    datos['order'].append(data)
+
+    with open('data/order.json', 'w') as file:
+        json.dump(datos, file, indent=4)
+
+
+def agregarIdOrden(idorden):
+
+    with open('data/idordenes.json', "r") as file:
+        data = json.load(file)
+
+    data['idordenes'].append(idorden)
+
+    with open('data/idordenes.json', 'w') as file:
+        json.dump(data, file, indent=4)
+
+def leerIdOrdenes():
+
+    with open('data/idordenes.json' ,'r') as file:
+        data = json.load(file)
+    return data['idordenes']
 
 """
 TIPOS DE STATUS:
